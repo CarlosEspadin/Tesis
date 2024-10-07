@@ -1,0 +1,1 @@
+[('knn', KNeighborsClassifier()), ('lr', LogisticRegression()), ('rf', RandomForestClassifier()), ('mlp', MLPClassifier())]

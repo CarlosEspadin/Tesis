@@ -1,0 +1,15 @@
+artifact_uri: file:///c:/Users/carlo/Syngenta/Projects%20for%20Analysis%20-%20General/Churn/mlruns/711937055164045047/56585994eddd4d168c33a8d50f41af28/artifacts
+end_time: 1723342811705
+entry_point_name: ''
+experiment_id: '711937055164045047'
+lifecycle_stage: active
+run_id: 56585994eddd4d168c33a8d50f41af28
+run_name: example_1
+run_uuid: 56585994eddd4d168c33a8d50f41af28
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1723342785670
+status: 3
+tags: []
+user_id: carlo

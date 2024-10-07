@@ -1,0 +1,209 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%           Capítulo 2: MARCO TEÓRICO - REVISIÓN DE LITERATURA
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\definecolor{CarrotOrange}{rgb}{0.93,0.57,0.13} 
+\definecolor{BlueViolet}{rgb}{0.54,0.17,0.89}
+\definecolor{Ao}{rgb}{0.0,0.5,0.0}
+\definecolor{BannanaYellow}{rgb}{1.0,0.88,0.21}
+\definecolor{Caribbeangreen}{rgb}{0.0,0.8,0.6}
+\definecolor{BleudeFrance}{rgb}{0.19,0.55,0.91}
+\definecolor{Amethyst}{rgb}{0.6,0.4,0.8}
+\definecolor{Dandelion}{rgb}{0.94,0.88,0.19}
+\definecolor{Guppiegreen}{rgb}{0.0,1.0,0.5}
+\definecolor{Grey}{rgb}{0.75,0.75,0.75}
+\definecolor{Brilliantrose}{rgb}{1.0,0.33,0.64}
+\definecolor{Darkblue}{rgb}{0.0,0.0,0.55}
+
+\chapter{Inteligencia Artificial y Aprendizaje Automático}
+
+En este capitulo se presentará la teoría acerca de las herramientas de Machine Learning (ML) y metodologías utilizadas para el caso de estudio abordado en este trabajo, así como los dos enfoques del ML, estos son el aprendizaje supervisado, siendo del tipo clasificación binaria, y aprendizaje no supervisado para el caso de la segmentación de clientes (clustering). 
+
+Además abordaremos temas previos y de suma importancia en toda implementación de ML, como la obtención de la información, preparación de los datos, visualización, etc.
+
+
+%\section{Definición}
+
+%\section{Diseño}
+
+\section{Preparación de los datos y recolección de los datos.}
+
+Una parte crucial en toda implementación de Machine Learning es la calidad de los datos, y es algo que cuando se hacen implementaciones sobre información real cobra mucha relevancia, ya que en términos generales es deber del científico de datos a cargo, asegurarse que dicha información sea de calidad.
+
+Ya sea asegurarse del cumplimiento de los supuestos que cada modelo de machine learning demanda ó bien, asegurarse que la calidad de la información sea la adecuada para poder obtener las mejores estimaciones y evitar problemas de Under-fitting o Over-fitting.
+
+
+En la mayoría de las implementaciones de Machine Learning necesitamos recolectar la información desde alguna fuente de origen, ya sea una base de datos, data lake o cual sea la fuente de la que provengan nuestros datos, por lo cual sera de vital importancia tener total conocimiento acerca del sistema de origen de la información. En consecuencia parte del pipeline que se va a preparar comprende la extracción de la información y en algunos casos preparar un primer procesamiento que nos asegure trabajar con el nivel de especificación que deseamos.
+
+Para el caso particular presentado en este trabajo, es necesario asegurarnos que el nivel máximo de detalle en nuestros datos sean clientes, osea que cada campo y registro debe hacer referencia a información de los clientes, como su historial de compras, año de registro, etc. Y por lo tanto un primer paso sería validar que estemos trabajando con registros únicos.
+
+En consecuencia es importante conocer todos los detalles posibles de los datos con los que vamos a trabajar, tanto en lo concerniente al negocio o a las propiedades inherentes de los datos, esto sera mejor abordado en el siguiente apartado.
+
+\subsection{Datos Faltantes y Outlier}
+
+\textbf{Esta sección aun no se desarrolla por completo.}
+
+\subsection{Análisis Exploratorio}
+
+De acuerdo con \citep{EstadisticaPracticacd} el análisis exploratorio de datos fue propuesto inicialmente por John W. Tukey en 1977, en un inicio se concebida como una breve inspección de las característica de los conjuntos de datos. Este análisis consiste en desentrañar todas las características útiles de los datos que estamos usando, ósea, una radiografía estadística de los datos.
+
+Y a pesar de la antigüedad esta técnica se ha sabido mantener y adaptarse a las necesidades de nuestros tiempos, en la época de los macrodatos el análisis exploratorio es fundamental en cada implementación de aprendizaje automático que realicemos.
+
+
+\subsubsection{Tipos de datos}
+
+Conocer el tipo de datos con los que vamos a trabajar es quizás el primer y más importante de los pasos a ejecutar cuando se empieza un análisis. Es importante remarcar que el marco general sobre el que se suele trabajar en ciencia de datos es una estructura de datos llamada \textsl{rectangular data}, básicamente es una matriz de $N \times M$, donde $N$ representa el número de columnas y $M$ el número de filas.  
+
+
+En particular Python nos ofrece varias versiones para poder trabajar con este tipo estructuras de datos, aunque la librería Polar nos ofrece una muy buena alternativa para trabajar con \textsl{rectangular data} en este trabajo en particular decidí enfocarme solamente en Pandas y los \textsl{dataframes}. 
+
+
+Aclarado este ultimo punto, me centrare en hablar de los tipos de datos y la importancia que tiene en el análisis exploratorio de los datos, en general los tipos de datos están clasificados en dos tipos importantes categóricos y numéricos. 
+
+% Ejemplo de cita textual
+\citet[p. 3]{EstadisticaPracticacd} define a los datos categóricos como "datos que solo pueden adoptar un conjunto de especifico de valores que representan un conjunto de categorías posibles", en términos más coloquiales son datos cualitativos que pueden agruparse en categorías, de este tipo se desprende dos subtipos de datos categóricos; nominales, también llamados binarios, esto debido a que cuentan con unicamente dos categorías, por ejemplo verdadero o falso, hombre o mujer, etc, y los datos ordinales, los cuales pueden ser agrupados en más de una categoría, como estados de la república, nombres de empleados, etc.
+
+
+Del mismo modo y como su nombre lo indica, los datos numéricos son un conjunto de valores que expresan una cantidad, esta puede ser dinero, volumen, días, etc. En computación y en matemáticas siempre hay dos tipos generales de conjuntos numéricos con los que solemos trabajar, estos son aquellos conjuntos que son fácilmente contables, más em particular que toman valores enteros unicamente (discretos) y el conjunto de valores que no se limitan unicamente a números enteros, y pueden abarcar cualquier valor dentro del conjunto de los números reales (continuos).
+
+
+En esta ultima parte cabe aclarar que hay que distinguir la definición de continuidad que nos proporciona la teoría matemática sobre los números reales y lo presentado en este trabajo, ya que como es bien sabido existe cierta limitante computacional para abordar la continuidad tal cual y como es concebida en la matemática tradicional, por lo cual aun que sean llamados datos continuos, entenderemos a estos como valores no necesariamente enteros.
+
+\pagestyle{empty}
+
+\begin{figure}[H]
+	\caption{fig. Tipos de datos}
+	\label{DiagramaTipoDato}
+	\begin{tikzpicture}[scale=0.85]
+		\path[mindmap,concept color=CarrotOrange,text=white]
+		node[concept] {Tipos de datos}
+		[clockwise from=0]
+		child[concept color=green!50!black] {
+			node[concept] {Categóricos}
+			[clockwise from=90]
+			child { node[concept] {Nominales} }
+			child { node[concept] {Ordinales} }
+			%child { node[concept] {Desarrollo de Productos} }
+			% child { node[concept] {software engineer\-ing} }
+		}  
+		child[concept color=Amethyst] {
+			node[concept] {Numéricos}
+			[clockwise from=-30]
+			child { node[concept] {Continuos} }
+			child { node[concept] {Discretos} }
+		};
+	\end{tikzpicture}
+\end{figure}
+
+Una vez repasado la importancia de conocer el tipo de datos con los que nos podemos encontrar, es de suma importancia poder reconocer en nuestro conjunto de datos que tipos tenemos, dos de las formas más comunes de visualizar esto en Python es atreves de pandas. La primera \ref{Ejemplopy} nos proporciona unicamente el listado de todos las columnas que contiene el dataframe df y el tipo de dato de cada cada uno. Por otro parte \ref{Ejemplopy1} nos proporciona lo mismo, pero con el agregado de contar el número de registros no nulos dentro de cada columna.
+
+\begin{lstlisting}[language=Python, caption=Ejemplo de conversión de fechas, label=Ejemplopy]
+	df.dtypes
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python, caption=Ejemplo de conversión de fechas, label=Ejemplopy1]
+	df.info()
+\end{lstlisting}
+
+Por lo tanto es bastante importante asegurarse que los campos que tenemos correspondan al tipo que en teoría deberían de tener, por ejemplo, si contamos con un campo que sea el id del producto que más compran los clientes o incluso el identificador de cada cliente, y esos datos son un tipo de dato numérico, valdría la pena considerarlos como datos categóricos y más del tipo ordinal, esto para evitar sacar conclusiones equivocadas sobre estos tipos de datos, una forma de cambiar el tipo de dato es la que se muestra en fragmento de código \ref{EjemploFechapy}.
+
+\begin{lstlisting}[language=Python, caption=Ejemplo de conversión de tipo de datos, label=EjemploFechapy]
+	df.astype({
+			'product_id': 'category',
+			'customers_id': 'category'
+		}
+	)
+\end{lstlisting}
+
+Previo a comenzar a hablar sobre el análisis univariado, bivariado, etc. Vale la pena mencionar que estas conversiones son a criterio, y que dependiendo como se obtengan los datos estos errores puedan prevenirse.
+
+\subsection{Visualización de datos}
+
+\textbf{Esta sección aun no se desarrolla por completo.}
+
+\subsubsection{Estadística Descriptiva: Análisis Univariado}
+
+En esta sección comenzamos a analizar las variables haciendo uso de la estadística descriptiva, \citep{2021KumarUsman} menciona que la estadística descriptiva nos permite realizar un breve resumen acerca de nuestros datos y así poderlos entender con mayor claridad. Estos resúmenes pueden ser presentado gráficamente o por medio de una representación numérica.
+
+Así que comenzaremos a estudiar la distribución de nuestros datos, las medidas de tendencia central y dispersión de nuestras variables. Realmente esta parte es bastante simple, ya que Python y Pandas nos permiten ver estos estadísticos de manera sencilla que podemos ver en el código \ref{EjemploSummarypy}, la función \textit{describe} integrada en Python nos permite realizar este análisis para variables categóricas y numéricas, haciendo uso del parámetro \textit{include}, simplemente tenemos que especificar este parámetro como \textit{[np.number]} y \textit{object}* para variables del tipo numéricas y categóricas respectivamente.
+
+\begin{lstlisting}[language=Python, caption=Ejemplo Summary, label=EjemploSummarypy]
+	df.describe(include='all')
+	# Output:
+	        		  bp_id    Temporada 	SO	...  Linea_Negocio
+	count             660.0       660		660	...           660
+	unique            149.0         2		3	...             7
+	top           1001368.0        PV		3CR	...            FG
+	freq               26.0       348		622	...           224
+	mean                NaN       NaN		NaN	...           NaN
+	min                 NaN       NaN		NaN	...           NaN
+	25%                 NaN       NaN		NaN	...           NaN
+	50%                 NaN       NaN		NaN	...           NaN
+	75%                 NaN       NaN		NaN	...           NaN
+	max                 NaN       NaN		NaN	...           NaN
+	std                 NaN       NaN		NaN	...           NaN
+	
+\end{lstlisting}
+
+De aquí viene la importancia de verificar que tengamos el tipo de dato deseado para cada variable, por lo cual es importante establecer una conversión haciendo uso de \ref{EjemploFechapy}.
+
+
+\subsubsection{Estadística Descriptiva: Análisis Bivariado}
+
+\subsubsection{Estadística Descriptiva: Análisis Multivariado}
+
+\subsection{Reducción de dimensiones}
+
+\subsubsection{PCA}
+
+\subsection{Conjunto de entrenamiento y de validación}
+
+\subsubsection{Tratamiento de clases desbalanceadas}
+
+Según \cite{Rodriguez2018}
+
+
+
+
+\section{Aprendizaje Supervisado}
+
+
+\subsection{Clustering}
+
+
+\subsubsection{Kmeans}
+
+\textbf{Cumplimiento de supuesto}
+
+
+\subsubsection{Clustering GMM}
+
+\textbf{Cumplimiento de supuesto}
+
+\section{Aprendizaje No Supervisado}
+
+
+\subsection{Clasificación Binaria}
+
+
+\subsubsection{Regresión Logistica}
+
+\textbf{Cumplimiento de supuesto}
+
+
+\subsubsection{K Nearest Neighbors}
+
+\textbf{Cumplimiento de supuesto}
+
+\subsubsection{Random Forest}
+
+\textbf{Cumplimiento de supuesto}
+
+
+\section{Implementación de los modelos}
+
+
+\subsection{Ajuste de los modelos}
+
+
+\subsection{Metricas de Ajuste (Evaluación)}
