@@ -15,8 +15,471 @@
 \definecolor{Brilliantrose}{rgb}{1.0,0.33,0.64}
 \definecolor{Darkblue}{rgb}{0.0,0.0,0.55}
 
-\chapter{Inteligencia Artificial y Aprendizaje Automático}
+% Cuadro numerado para ejemplos
+\newtcolorbox[auto counter,number within=section]{example}[2][]
+{colback=blue!5!white,colframe=blue!75!black,fonttitle=\bfseries, title=.~ #2,#1}
 
+\newtcolorbox[]{micaja}[2][]
+{colback=Gray!5!white,colframe=Gray!75!black}
+
+\newtcolorbox{micaja2}
+{colback=Amber!5!white,colframe=Amber!75!black}
+
+\newtcolorbox[auto counter,number within=section]{definicion}[2][]
+{colback=Gray!5!white,colframe=Gray!75!black,fonttitle=\bfseries, title=Definición~\thetcbcounter: #2,#1}
+
+\newtcolorbox[auto counter,number within=section]{teorema}[2][]
+{colback=Gray!5!white,colframe=Gray!75!black,fonttitle=\bfseries, title=Teorema~\thetcbcounter: #2,#1}
+
+\chapter{Marco teórico y conceptual}
+
+\section{Fundamentos del aprendizaje automático (ML)}
+
+En los últimos años, la IA se ha vuelto parte de la cultura popular de nuestra sociedad y temas como el aprendizaje automático, ha alcanzado un hito en popularidad bastante marcado, esto debido a dentro de la misma inteligencia artificial esta es una de las ramas más destacadas, permitiendo a un sistema aprender de manera automática patrones a partir de datos y con los mismos poder realizar predicciones precisas a partir de los datos dados. En pocas palabras, el Machine Learning como nos referiremos al aprendizaje automático de ahora en adelante, busca que los sistemas informáticos "aprendan" de las experiencias de los datos, esto sin ser programados explícitamente para llevar acabo una tarea en especifico. 
+
+Sin embargo, pese a la reciente popularidad de la inteligencia artificial, que de ahora en adelante nos referiremos a ella como IA, y el creciente interés del publico en general por todos los temas concernientes a la misma, es un hecho que desde mediados del siglo pasado se comenzó a gestar el desarrollo de la IA, y desde inicios de los 2000 diversas y discretas aplicaciones de la IA acompañaron la vida de las personas, desde integraciones en video juegos hasta motores de búsqueda como Google. 
+
+Una de las definiciones que mejor describe el machine learning es la citada por \cite{Mitchell1997}:
+
+\begin{quote}
+	\small
+	A computer program is said to learn from experience E with respect to some task T 
+	and some performance measure P, if its performance on T, as measured by P, improves 
+	with experience E.
+	
+	\begin{flushright}
+		—\textit{Tom Mitchell, 1997}
+	\end{flushright}
+\end{quote}
+
+A manera de ejemplo para poder entender como funciona el Machine Learning \cite[p. 4]{2017Géron} explica esta definición usando como ejemplo el filtro de correos electrónicos de spam, la cual es una aplicación del machine learning, dice que el sistema puede aprender a marcar spam a partir de ejemplos de correos electrónicos spam (por ejemplo, marcados por los usuarios) y ejemplos de correos electrónicos normales (no spam, también llamados "ham"). Los ejemplos que el sistema utiliza para aprender se denominan conjunto de entrenamiento. Cada ejemplo de entrenamiento se denomina instancia de entrenamiento (o muestra). En este caso, la tarea $T$ consiste en marcar el spam para los correos electrónicos nuevos, la experiencia $E$ son los datos de entrenamiento y es necesario definir la medida de rendimiento $P$; por ejemplo, se puede utilizar la proporción de correos electrónicos correctamente clasificados.
+
+Esta explicación se puede extender de igual forma al problema central de esta tesis, el churn, pensemos que tradicionalmente una empresa tiene ciertas reglas de negocio para considerar a un cliente como perdido o Churn, más tarde ahondaremos en las posibles definiciones de dichas reglas, por el momento supongamos que una empresa define n cantidad de reglas para clasificar a sus clientes como churn y no churn, si dichas reglas se trasladan a un software el resultado sería algo muy similar al diagrama \ref{fig:TraditionalApproach}.
+
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[node distance=1.5cm]
+		
+		% Nodes
+		\node (study) [startstop] {Clasificar clientes};
+		\node (write) [process, right=of study] {Escribir reglas de negocio};
+		\node (evaluate) [decision, right=of write] {Evaluación};
+		\node (launch) [startstop, above=of evaluate, yshift=0.5cm] {Clientes ya clasificados};
+		\node (error) [startstop, below=of evaluate] {Analizar errores};
+		
+		% Arrows (sin íconos)
+		\draw [arrow] (study) -- (write);
+		\draw [arrow] (write) -- (evaluate);
+		\draw [arrow] (evaluate) -- (launch);
+		\draw [arrow] (evaluate) -- (error);
+		\draw [arrow] (error) -- (study);
+		
+	\end{tikzpicture}
+	\caption{El enfoque tradicional}
+	\label{fig:TraditionalApproach}
+\end{figure}
+
+
+El problema de este enfoque tradicional es claro, una vez que se identifiquen las áreas de oportunidad en las reglas de negocio se tendrían que hacer adecuaciones en las mismas, quitar o añadir nuevas, principalmente esto ultimo paso va consumir mucho tiempo en mantenimiento y aumenta enormemente la complejidad de dichas validaciones, ya que por cada error cometido por el sistema se tendrían que estar añadiendo más y más reglas de negocio para obtener clasificaciones lo más certeras. 
+
+En cambio, si esta misma tarea la realizamos usando un enfoque de Machine Learning la trazabilidad cambia totalmente, ya que el algoritmo de ML (Machine Learning) aprende de manera automática las caracterizaras que son buenos predicadores de clientes churn y no churn, al igual que el sistema esta mucho más acotado, es más fácil de entender y, muy probablemente, sea más preciso. El como abordar el Machine Learning este problema lo podemos ver más claramente en el diagrama \ref{fig:MLapproach}, donde notamos que en esta ocasión en flujo del proceso ya no depende de reglas de negocio establecidas manualmente, esta vez son los datos históricos quienes alimentan al modelo. Este aprende por sí solo las relaciones complejas entre las variables que describen a los clientes, permitiendo generalizar a nuevos casos con mayor precisión.
+
+
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[node distance=1cm and 1.3cm]
+		
+		% Nodos
+		\node (study) [startstop] {Clasificar clientes};
+		\node (train) [process, right=of study, fill=green!20] {Entrenar el algoritmo ML};
+		\node (evaluate) [decision, right=of train] {Evaluar la solución};
+		\node (launch) [startstop, above=of evaluate] {Clientes ya clasificados};
+		\node (error) [startstop, below=of evaluate] {Analizar errores};
+		\node (data) [trapezium, trapezium left angle=70, trapezium right angle=110, 
+		minimum width=2.8cm, minimum height=1cm, text centered, draw=black, 
+		fill=green!20, above=of train] {Datos históricos};
+		
+		% Flechas
+		\draw [thick, ->, >=stealth] (study) -- (train);
+		\draw [thick, ->, >=stealth] (train) -- (evaluate);
+		\draw [thick, ->, >=stealth] (evaluate) -- (launch);
+		\draw [thick, ->, >=stealth] (evaluate) -- (error);
+		\draw [thick, ->, >=stealth] (error.west) -- ++(-1.2,0) -| (study.south);
+		\draw [thick, dashed, ->, >=stealth] (data) -- (train);
+		
+	\end{tikzpicture}
+	\caption{Enfoque de Machine Learning}
+	\label{fig:MLapproach}
+\end{figure}
+
+En este enfoque, los datos se convierten en el suministro más valioso, una vez que nuestro modelos este entrenado, se puede evaluar su rendimiento utilizando métricas objetivas del rendimiento, como la exactitud, la precisión, etc. Si el rendimiento no es el esperado, se pueden analizar los fallos, ajustar el modelo o incluso recolectar nuevos datos, para así reiniciar el bucle de aprendizaje.
+
+Algunas de las ventajas del enfoque de Machine Learning son la \textit{escalabilidad}, ya que los modelos pueden adaptarse sencillamente a nuevos datos sin tener que rescribir reglas de negocio de forma manual. Otra ventaja es \textbf{capacidad para detectar patrones complejos}, esto ya que los algoritmos de pueden reconocer correlaciones no lineales y dependencias que a simple vista sería muy difíciles de identificar mediante validaciones fijas. Por ultimo y no menos importante, \textbf{la capacidad de mejorar continuamente} el ciclo iterativo nos permite evolucionar progresivamente nuestro sistema esto conforme van cambiando ciertos patrones de comportamiento de los clientes. De tal suerte que aplicar modelos de Machine Learning en la predicción del churn no solo representa una mejora tecnológicamente hablando, sino también un cambio de paradigma en la manera en que las empresas pueden combatir el abandono de clientes.  
+
+\section{Aprendizaje Supervisado}
+
+Ya hemos abordado una pequeñas introducción al aprendizaje automático o machine learning, y como usando esta perspectiva podemos ayudarnos para resolver distintos problemas de la vida cotidiana en múltiples ámbitos, entre ellos el empresarial, además su implementación puede ser más practica, escalable y fácil de mantener a lo largo del tiempo. Sin embargo, es necesario saber que el machine learning es un tipo de inteligencia artificial, y aun que anteriormente hemos mencionado con cierta naturalidad el concepto de inteligencia artificial es necesario dar un par de definiciones para entender mejor este concepto, según \citealp{Russell2020}:
+
+%% Cambiar al idioma original.
+
+\begin{quote}
+	\small
+	"La inteligencia artificial es el estudio de los agentes que reciben percepciones del entorno y realizan acciones."
+	
+	\begin{flushright}
+		\citet[p. 1]{Russell2020}
+	\end{flushright}
+\end{quote}
+
+Otra definición bastante interesante es la dada por \citealp{luger2005ai}:
+
+\begin{quote}
+	\small
+	"La inteligencia artificial es el estudio de los mecanismos computacionales para la percepción y el razonamiento, que pueden imitar la inteligencia humana."
+	
+	\begin{flushright}
+		\citet{luger2005ai}
+	\end{flushright}
+\end{quote}
+
+De tal forma que si hilamos estas definiciones con la antes dada para el machine learning, podemos darnos cuenta que es un caso particular de la inteligencia artificial, ya que el machine learning busca brindar a las maquinas la capacidad de aprender a partir de datos, y aunque el propósito no sea emular el razonamiento humano, la importancia del machine learning reside en poder capturar patrones y predecir resultados futuros con cierta medida de la incertidumbre. Este mismo tiene varios subtipos o ramas, las cuales son:
+
+\begin{itemize}
+	\item \textbf{Aprendizaje supervisado}
+	\item \textbf{Aprendizaje no supervisado}	\item \textbf{Aprendizaje semi-supervisado}
+	\item \textbf{Aprendizaje por refuerzo}
+	\item \textbf{Aprendizaje por lotes y en línea}
+\end{itemize}
+
+Y de la misma forma en que el machine learning hace parte de la inteligencia artificial como una rama dentro de esta disciplina, así como todos los tipos de aprendizaje automático que mencionamos anteriormente, el diagrama \ref{fig:IA_ML_Tipos} ejemplifica perfectamente la jerarquía entre inteligencia artificial, machine learning e incluso el deep learning o aprendizaje profundo que es un tipo de aprendizaje automático, una de las definiciones más famosas es la siguiente:
+
+\begin{quote}
+	\small
+	"Deep learning is a class of machine learning algorithms that use multiple layers to progressively extract higher-level features from the raw input."
+	
+	\begin{flushright}
+		\citet{lecun2015deep}
+	\end{flushright}
+\end{quote}
+
+De hecho uno de los diferenciadores principales entre el deep learning y los demás tipos de aprendizaje automático es la que se menciona en la definición anterior, los modelos de deep learning, los cuales suelen ser Redes neuronales, minimizan la intervención humana a la hora de selección de características, lo que permite una mayor automatización y eficiencia en problemas de complejidad mayor.
+
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}
+		
+		% Círculo IA
+		\draw[fill=blue!20, draw=blue!50] (0,0) circle (5.5cm);
+		\node at (0,4.9) {\textbf{Artificial Intelligence}};
+		
+		% Círculo ML
+		\draw[fill=green!30, draw=green!60] (0,-0.5) circle (4cm);
+		\node at (0,2.9) {\textbf{Machine Learning}};
+		
+		% Círculo DL
+		\draw[fill=brown!40, draw=red!80] (0,-1.5) circle (1.83cm);
+		\node at (0, -1.5) {\textbf{Deep Learning}};
+		
+		% Tipos de aprendizaje como círculos (dentro de ML)
+		% Supervisado
+		\draw[fill=yellow!50, draw=black!50] (-2.5, 0.7) circle (1.5cm);
+		\node at (-2.5, 0.7) [align=center] {\footnotesize Aprendizaje \\ \footnotesize Supervisado};
+		
+		% No supervisado
+		\draw[fill=orange!40, draw=black!50] (2.5, 0.7) circle (1.5cm);
+		\node at (2.5, 0.7) [align=center] {\footnotesize Aprendizaje \\ \footnotesize No Supervisado};
+		
+		% Semi-supervisado (intersección entre supervisado y no supervisado)
+		\draw[fill=purple!30, draw=black!60, opacity=0.8] (0, 0.3) circle (1.3cm);
+		\node at (0, 0.3) [align=center] {\scriptsize Semi- \\ \scriptsize Supervisado};
+		
+		% Refuerzo (independiente)
+		\draw[fill=cyan!30, draw=black!50] (2.7, -2.3) circle (1.3cm);
+		\node at (2.7, -2.3) [align=center] {\footnotesize Aprendizaje \\ \footnotesize por Refuerzo};
+		
+		% Por lotes y en línea (fuera como forma de entrenamiento)
+		\node[draw, rounded corners, fill=gray!20, align=center] at (0,-4.2) {\footnotesize Por lotes y \\ \footnotesize en línea};
+		
+	\end{tikzpicture}
+	\caption{Relación entre IA, ML, Deep Learning y tipos de aprendizaje automático}
+	\label{fig:IA_ML_Tipos}
+\end{figure}
+
+
+Podríamos continuar hablando acerca de todas las ramas en las que se especializa la inteligencia artificial sin embargo no es el propósito de este trabajo. Pero algo que si esta dentro del alcance de este trabajo es el aprendizaje supervisado, el cual es una de las ramas más importantes dentro del aprendizaje automático y la base principal para elaborar modelos predictivos como los que podríamos usar para predecir y explicar el churn. 
+
+
+En términos generales este enfoque es muy parecido al ejemplo del diagrama \ref{fig:MLapproach}, entrenamos nuestro modelo (sistema) con datos históricos como ejemplos de entrada, cada uno de los cuales esta asociado a una salida esperada. El objetivo es que este modelo aprenda las distintas relaciones que pudieran existir entre las diferentes variables que se le presenten estas asociadas a un resultado, y este mismo sea capaz de predecir salidas de forma correcta a datos sin un resultado definido.
+
+En términos matemáticos el sistema buscar aprender una función que explique la relación entre las variables de entrada, el cual común mente es llamado matriz de características o variables explicativas, y la variable objetivo. Este proceso puede expresarse de las siguiente manera:
+
+\begin{equation}
+	f: \mathbb{R}^{n\times m} \rightarrow \mathbb{R}^n
+\end{equation}
+
+Donde $ \mathbb{R}^{n\times m} $ representa la matriz de características con $n$ observaciones o filas y $m$ características o columnas, por otra parte $\mathbb{R}^n$ es la variable objetivo o termino dependiente, este mismo es el vector de los valores de salida esperados de orden $n$, además nos referiremos a $f$ como "modelo".
+
+En el caso del Churn cada fila de la matriz $n \times m$ es un cliente, por lo cual tendríamos $n$ clientes con $m$ características, las cuales pueden ser consumo, frecuencia de compra, etc. Similarmente las salidas nos indican si un cliente abandono o no, lo cual se puede representar como un vector $ \mathbf{y} = \begin{bmatrix} y_1 \ y_2 \ \cdots \ y_n \end{bmatrix}$, con$\quad v_i \in \{0, 1\}, \forall i \in {1, 2, \dots, n} $.
+
+El aprendizaje supervisado resuelve distintos tipos de problemas entre los cuales se encuentra los de tipo regresión y clasificación, mismos que podemos ver ilustrados en el diagrama \ref{fig:ZoomAprendizaje}, en esta tesis solo abordaremos en profundidad los problemas de clasificación ya que el churn puede reducirse a eso. 
+
+%% Mencionar que una red neuronal y como se puede hacer se deja para otro trabajo y dejar algunas referencia.
+
+El diagrama \ref{fig:ZoomAprendizaje} nos muestra que los problemas de regresión, clasificación o segmentación (que son un tipo de aprendizaje no supervisado) no son exclusivos del aprendizaje supervisado o no supervisado, sino que también pueden ser resueltos con ayuda de redes neuronales, todo depende de la cantidad de datos que tengamos a nuestra disposición o el nivel de intervención para selección de características.
+
+
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}[scale=1]
+		
+		% Círculo ML
+		\draw[fill=green!30, draw=green!60] (0,-0.5) circle (6cm);
+		\node at (0,3.9) {\textbf{Machine Learning}};
+		
+		% Aprendizaje Supervisado
+		\draw[fill=yellow!50, draw=black] (-3,0) circle (3cm);
+		\node at (-3,2.3)  [align=center] {\footnotesize \textbf{Aprendizaje} \\ \footnotesize \textbf{Supervisado}};
+		\node[align=center] at (-3, 0.6) {\footnotesize Clasificación: \\ \footnotesize SVM, Árboles, \\ \footnotesize Regresión logística};
+		\node[align=center] at (-3, -0.5) {\footnotesize Regresión: \\ \footnotesize Reg. lineal, \\ \footnotesize k-NN};
+		
+		% Aprendizaje No Supervisado
+		\draw[fill=orange!40, draw=black] (3,0) circle (3cm);
+		\node at (3,2.3)   [align=center] {\footnotesize \textbf{Aprendizaje no} \\ \footnotesize \textbf{Supervisado}};
+		\node[align=center] at (3, 0.8) {\footnotesize Clustering: \\ \footnotesize K-Means, DBSCAN};
+		\node[align=center] at (3, -0.8) {\footnotesize Reducción de dimensión: \\ \footnotesize PCA, t-SNE};
+		
+		% Deep Learning (abajo en el centro)
+		\draw[fill=brown!40, draw=black] (0,-3.5) circle (2.5cm);
+		\node at (0, -1.8) [align=center] {\textbf{Deep Learning}};
+		\node[align=center] at (0, -2.6) {\footnotesize ANN, CNN, RNN, \\ \footnotesize Autoencoders};
+		
+
+		
+	\end{tikzpicture}
+	\caption{Tipos de aprendizaje automático con ejemplos de tareas y algoritmos}
+	\label{fig:ZoomAprendizaje}
+\end{figure}
+
+
+
+\subsection{Algoritmos de clasificación}
+
+El churn se puede reducir a un problema de clasificación, más en especifico a una clasificación binaria. Los algoritmos de clasificación permiten predecir la pertenencia de una observación a una categoría o clase definida. En el contexto del churn, el objetivo es predecir si un cliente se mantendrá activo o si abandonará la empresa en un periodo determinado.
+
+A continuación, se presentan algunos de los algoritmos de clasificación más comunes y efectivos utilizados para este propósito:
+
+\textbf{Hasta acá termina mi avance}
+
+\subsubsection{Regresión logística}
+
+\subsubsection{KNN}
+
+\subsubsection{Random Forest}
+
+\subsubsection{SVM}
+
+\section{Predicción del churn.}
+
+En esta sección abordaremos todos los conceptos concernientes con el churn, 
+
+\subsection{Definición de \textit{churn}}
+
+De hecho \citet[p. 36]{2020Gold} define el origen de la palabra \textit{churn} en el término \textit{churn rate}, este termino hace referencia a la proporción de clientes que abandonan la empresa en un periodo determinado. 
+
+Más en especifico el \textit{churn} es un estado u estatus que se le da a un cliente habitual de una empresa o servicio cuando este da por terminada la relación comercial, este concepto ha sido acuñado más recientemente por aquellas empresas que prestan servicios de suscripciones, como pueden ser plataformas de entretenimiento digital, proveedores de servicios de telecomunicaciones (internet, telefonía y/o televisión), etc. Sin embargo el \textit{churn} no es únicamente aplicable a este tipo de compañías.
+
+Ya que solo necesitamos que la empresa en cuestión oferte uno o más productos de los cuales tenga consumidores habituales para poder estudiar el \textit{churn} en toda su cartera de clientes y más en especifico poder abordar distintas estrategias para la retención de clientes. 
+
+En general el estudiar el comportamiento de los clientes puede ser un reto distinto dependiendo de la empresa e industria en la cual el científico de datos o analista de datos se encuentre, por lo cual es necesario tener pleno conocimiento sobre las reglas de negocio en cuestión. Ya que cada caso de estudio necesitará de enfoques distintos para poder entender de mejor manera el \textit{churn} y cómo combatirlo.
+
+De hecho ese debería ser el propósito principal de estudiar el \textit{churn}, poder proporcionar una radiografía certera sobre el comportamiento de los clientes en una empresa, esto eventualmente permitirá a los líderes dentro de la organización poder tomar decisiones basadas en datos, y es tarea del científico de datos proveer la información lo más clara y precisa posible.
+
+\subsection{Cálculo del \textit{churn}}
+
+Anteriormente expusimos la diversidad de enfoques del \textit{churn}, que hay empresas dedicadas a ofertar servicios de suscripciones o que simplemente tienen una cartera de clientes habituales, pese a todo esto no todas las empresas tienen un indicador de abandono, de hecho en la mayoría de los casos lo primero sea determinar de manera correcta cuando un cliente a abandonado.
+
+Para ellos en nuestro conjunto de datos asignaremos como \textit{churn} a una columna cuyos registro sea true o false, esta fungirá como una bandera de abandono donde el valor true indica que un cliente abandono y False el caso contrario, como construir esta columna sera parte importante de este trabajo.
+
+En el caso de las empresas que ofrecen suscripciones puede no aplicar, ya que saber cuando un cliente ha abandonado la compañía es más sencillo, podemos simplemente asignar el valor de True en la columna \textit{churn} a todos aquellos que no cuentan con una suscripción activa y como False a los casos contrarios, y como mencionamos anteriormente, hablaremos da como construir el indicador de \textit{churn}, para usar esta forma de determinar el \textit{churn} es necesario contar con una variable que nos indique el tiempo desde la ultima transacción del cliente, y aun que no contemos con este dato podríamos determinarlo fácilmente de la siguiente manera:
+
+\begin{lstlisting}
+	fecha_ref = pd.Timestamp(datetime.now().date())
+	df['Tiempo_ultima_compra'] = df.groupby('bp_id')['Date_Last'].transform(lambda x: np.abs((fecha_ref - x.max()).days))
+	
+\end{lstlisting}
+
+
+Donde '$fecha\_ref$' es la variable que almacena la fecha del sistema cuando se ejecuta el programa, otra alternativa sería asignar a '$fecha\_ref$' un día en especifico, ejemplo el fin de mes. Por otra parte necesitamos una columna auxiliar en nuestro dataframe para realizar el calculo final que es el tiempo desde la ultima compra, esta columna es '$Date\_Last$', esta contiene la ultima fecha de compra del cada cliente y en base a esta calcularemos el tiempo trascurrido desde la ultima compra, tal y como se muestra en el código \ref{EjemplodeTDUC}.
+
+Una vez determinada la columna $'Tiempo\_ultima\_compra'$ conviene analizar la distribución de los valores para dicha variable, esto nos permite ver el comportamiento general de cada individuo\footnote{En el capitulo 2 repasamos el análisis univariado y sus implicaciones teóricas, en esta sección nos enfocaremos unicamente en las aplicaciones.}, en este caso, podemos visualizar el histograma de la variable en cuestión (figura \ref{fig:enter-label5}) en la cual podemos apreciar que gran parte de los clientes no sobrepasan los 125 días de inactividad de compra, y de hecho podemos notar una linea vertical de color roja que indica el percentil 75 \footnote{Para este ejemplo, decidí tomar el percentil 75, sin embargo la elección de percentil es a criterio del científico de datos y esta fuertemente ligado a las caracteristicas de los datos con los que estemos trabajando, así que tómese este valor como lo que es, un ejemplo.} de la variable '$Tiempo\_ultima\_compra$' lo cual nos indica que los clientes con un tiempo de inactividad demasiado alto son realmente pocos.
+
+\begin{center}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[scale=.35]{Gráficas e Imagenes/Tiempo_ultima_compra.png}
+		\caption{Histograma de Tiempo desde la ultima compra}
+		\label{fig:enter-label5}
+	\end{figure}
+\end{center}
+
+Como sugerencia, conviene que incluyamos una columna en nuestro dataframe que contenga el percentil que deseamos tomar como condición para determinar el abandono, puedes seguir el ejemplo que se muestra en el código \ref{CalculoPercentil} como ejemplo de como realizar el calculo del k-esimo\footnote{Donde k es el valor del percentil a determinar.} percentil.
+
+\begin{lstlisting}[language=Python, caption=Ejemplo de como determinar el percentil n, label=CalculoPercentil]
+	df['percentile_k'] = np.percentile(df['Tiempo_ultima_compra'], k)
+\end{lstlisting}
+
+Una vez hecho el análisis del comportamiento de las ultima compra registrada de cada clientes y de haber calculado el percentil es hora de determinar la columna \textit{churn} dentro de nuestro dataframe, por lo cual nos apoyaremos del código \ref{CalculoChurn}.
+
+\begin{lstlisting}[language=Python, caption=Ejemplo de como determinar el churn., label=CalculoChurn]
+	df['Churn'] = np.where(df['Tiempo_ultima_compra'] > df['percentile_k'],True, False)
+\end{lstlisting}
+
+Por ultimo, en la figura \ref{fig:ChurnDistri} podemos apreciar la proporción del \textit{churn} en los clientes a analizar, y el resultado de la codificación anterior, en la gráfica de pie podemos notar que existe cierto desbalance en la proporción de clientes abandonadores y no abandonadores, recordemos que a posteriori esto puede ser un problema en la implementación de modelos de clasificación binaria, lo cual fue abordado en el capitulo 2.
+
+\begin{center}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[scale=.45]{Gráficas e Imagenes/Distribucion_Churn.png}
+		\caption{Gráfica de tarda para el abandono de clientes.}
+		\label{fig:ChurnDistri}
+	\end{figure}
+\end{center}
+
+En estas ultimas secciones he abordado a profundidad el concepto de \textit{churn}, el como analizar la actividad de compra de los clientes nos ayuda a comprender a como determinar el \textit{churn}, por lo cual en la siguiente sección realizaremos un tipo de análisis más enfocado al comportamiento histórico de los clientes y ver cual ha sido el \textit{churn} y retention rate.
+
+\subsection{Metricas y causalidad del \textit{churn}}
+
+Pese a que existen numerosas estrategias que podrían ayudar a disminuir la tasa de abandono y por lo tanto combatirlo, cabe resaltar que no nos enfocaremos en explicar dichas estrategias, más bien, nos enfocaremos en como aprovechar las razones subyacentes al \textit{churn} para poder definir buenas métricas \footnote{En este caso cabe aclarar que otros sinónimos con los nos referiremos a las metricas son características, dimensiones o variables predicadoras.} que ayuden a evaluar el comportamiento de los clientes, y así poder usar estas mismas métricas en una eventual predicción del \textit{churn}, el cual es propósito final de este trabajo.
+
+Una definición de métrica para clientes puede ser la provista por \citet[p. 51]{2020Gold} ``\textit{cualquier medición que realice sobre todos los clientes individualmente}". Por lo cual es crucial encontrar las mejores metricas para monitorear a los clientes, de hecho \cite{2020Gold} menciona las siguientes características importantes que debe tener una buena métrica; debe ser fácil de entender para la empresa, deben estar asociada con el \textit{churn} y la retención, segmenta a los clientes de manera que facilita las intervenciones dirigidas a disminuir el \textit{churn rate} y sobre todo es útil para múltiples áreas de la empresa (marketing, soporte, etc.)
+
+En el capitulo anterior discutimos sobre la importancia de seleccionar correctamente las características para implementar \textsl{modelos de clasificación binaria}, mencionamos diversas técnicas de reducción de dimensiones basadas en criterios estadísticos, sin embargo, hay que considerar otras pautas a la hora de escoger dichas dimensiones si lo que deseamos es predecir el \textit{churn}, estos juicios alternativos obedecen más a las reglas del negocio o empresa. Claro siempre hay que analizar la relación que pudieran tener con el \textit{churn}. 
+
+\subsection{Análisis de Cohortes y la tasa de abandono}
+
+Analizar el comportamiento del abandono de clientes a lo largo del tiempo nos puede ayudar a encontrar conductas que a simple vista suelen pasar desapercibidas. Por lo tanto cabe aclarar el significado de cohorte,  \citep{2020Gold} lo define como un grupo de individuos que son similares, y de hecho lo que nos interesa en este trabajo es estudiar esa similitud a lo largo del tiempo para poder encontrar patrones en el comportamiento del abandono de clientes. 
+
+Por lo cual los grupos que definiremos serán periodos de tiempo, agruparemos aquellos clientes que tuvieron actividad durante dichos periodos, en particular para este trabajo definiremos los cohortes como meses, pero bien podrían ser semanas, años, etc. El objetivo de identificar estos cohortes es tener mayor claridad de la actividad mensual de los clientes y poder hacernos las siguiente preguntas. ¿Cuantos clientes activos tiene una empresa por mes? ¿Cuantos clientes nuevos han adquirido? y ¿Cuantos clientes han perdido?
+
+Podemos estudiar el comportamiento de estos cohortes usando diferentes metricas, ya sea por el numero de suscripciones a un servicio, volumen de compra, valor de compra o numero de clientes activos, este ultimo es la que usaremos en este trabajo, ya que esto nos permitirá relacionarlo con un concepto previamente visto, el \textit{churn rate}.\footnote{Antes de continuar tenemos que aclarar que hay distintos tipos de enfoques para agrupar los clientes, estos enfoques son inherentes al negocio o empresa en el cual se quiera implementar, además esta fuertemente ligado a la información que tengamos disponible, por lo cual hay que tener en cuenta estas limitantes antes de llevar acabo el análisis de cohortes.} 
+
+Hacer este análisis en python es tarea sencilla, primero es necesario tener la fecha de compra o fecha de facturación contenida en nuestro datafra, cabe aclarar que este ejercicio podría hacerse antes de determinar la variable de abandono, esto para evitar tener la correcta dimensión del dataframe con el que deseamos trabajar, ya que el nivel de detalle que deseamos tener para realizar este análisis es por fecha de compra, consumo, producto y clientes o usuarios. Aclarado lo anterior, podemos comenzar a revisar los pasos a seguir para hacer este análisis:
+
+
+\textbf{Duda: ¿Sera mejor mostrar esto como pseudocódigo?}
+\begin{enumerate}
+	\item Ordenar las observaciones de nuestro dataframe por fecha y id de usuario.\footnote{Es necesario que la variable que contenga la fecha sea del tipo de datetime para poder obtener una salida correcta en este paso y en los posteriores.}
+	\item Crear una variable que almacene el desplazamiento de cada cohorte en meses posteriores, esta variable nos ayuda a identificar los periodos de desplazamiento posterior a la adquisición de los clientes.
+	\item Determinar el mes de adquisición del cohorte de clientes.
+	\item Contar los clientes activos mensuales de cada cohorte y sus desplazamientos posteriores.
+	\item Del conteo final hay que tomar los clientes iniciales de cada cohorte y dividir todos los conteos por el número de clientes iniciales.
+\end{enumerate}
+
+
+A continuación mostraremos la implementación de dicho análisis, el primero de los pasos esta ilustrado en el código \ref{CohortStep1}
+
+\begin{lstlisting}[language=Python, caption=código del paso 1 del analisis de cohorte, label=CohortStep1]
+	df.sort_values(by=['Fecha', 'bp_id'], inplace=True)
+\end{lstlisting}
+
+Y es que como bien lo indican las instrucciones simplemente tenemos que ordenar nuestro dataframe haciendo uso de la API de pandas. 
+
+Ordenar los datos de esta manera nos asegura que los cohortes que creemos tengan coherencia cronológicamente, esto porque en el paso 2 y 3 para determinar el mes de adquisición del cohorte y los meses de desplazamiento nos basamos en los meses de actividad de los clientes, en el código \ref{CohortStep2} creamos la columna \textit{CohortMonth} la cual corresponde al mes de adquisición del cohorte, mientras que \textit{InvoiceMonth} es el mes de compra cada cliente.
+
+\begin{lstlisting}[language=Python, caption=código del paso 2 del analisis de cohorte, label=CohortStep2]
+	def get_month(x): return dt.datetime(x.year, x.month, 1)
+	
+	df['InvoiceMonth'] = df['Fecha'].apply(get_month)
+	grouping = df.groupby('bp_id')['InvoiceMonth']
+	df['CohortMonth'] = grouping.transform('min') 
+\end{lstlisting}
+
+De forma auxiliar y previo obtener el resultado final, necesitamos crear una función que extraiga los valores enteros de los campos  \textit{CohortMonth} y \textit{InvoiceMonth}, en el código \ref{CohortStep2.1} mostramos la definición de dicho método. 
+
+\begin{lstlisting}[language=Python, caption=código para el método get\_date\_int, label=CohortStep2.1]
+	def get_date_int(df, column):
+	year = df[column].dt.year
+	month = df[column].dt.month
+	day = df[column].dt.day
+	return year, month, day
+\end{lstlisting}
+
+Análogamente para mejorar la forma en que vemos la información obtenida en el paso 3 nos apoyamos de la función \textit{get\_date\_int}, el código \ref{CohortStep3.1} nos ayudará a crear una columna llamada CohortIndex, esta columna como su nombre es un conjunto de indices cuyo fin es representar los cohortes, osea nos permite tener una mejor visualización del desplazamiento de cada grupo de clientes.
+
+
+\begin{lstlisting}[language=Python, caption=código para la obtención de la columna \textit{CohortIndex}, label=CohortStep3.1]
+	invoice_year, invoice_month, _ = get_date_int(df, 'InvoiceMonth')
+	cohort_year, cohort_month, _ = get_date_int(df, 'CohortMonth')
+	years_diff = invoice_year - cohort_year
+	months_diff = invoice_month - cohort_month
+	df['CohortIndex'] = years_diff * 12 + months_diff + 1
+\end{lstlisting}
+
+Por otra parte, para obtener el paso 4 debemos hacer uso de una pivot table  agrupar los datos por \textit{CohortMonth} y \textit{CohortIndex}, así como agregar para obtener el resultado final, en el código \ref{CohortStep4} podemos observar como llevar acabo esta implementación. La utilidad de usar una tabla pivote para mostrar el resultado es porque gracias a esta forma podremos visualizar de mejor manera el desplazamiento desde el momento de adquisición para cada cohorte hasta la ultima actividad.
+
+\begin{lstlisting}[language=Python, caption=código para la obtención de la columna \textit{CohortIndex}, label=CohortStep4]
+	grouping = df.groupby(['CohortMonth', 'CohortIndex'])
+	cohort_data = grouping['pd_id'].apply(pd.Series.nunique)
+	cohort_data = cohort_data.reset_index()
+	cohort_counts = cohort_data.pivot(index='CohortMonth',
+	columns='CohortIndex',
+	values='pd_id')
+\end{lstlisting}
+
+Finalmente para poder obtener la matriz de taza de retención tenemos que llevar acabo el paso 5, la implementación la mostraremos en fragmento de código \ref{CohortStep4} se crea la variable \textit{cohort\_sizes} que toma la primera columna, esta representa el número de clientes iniciales de cada cohorte, una vez hecho esto crearemos la tabla pivote final llamada \textit{retention}, la misma es resultado de dividir toda la pivot \textit{cohort\_counts} por \textit{cohort\_sizes}, tal y como se muestra en la ecuación \ref{EquationChurn}, de hecho ya podemos explicar el porque la ecuación del \textit{churn rate} considera el numero de clientes por periodos de tiempo, y es que esta es la mejor forma de analizar la tasa de retención.
+
+
+\begin{lstlisting}[language=Python, caption=código para la obtención de la columna \textit{CohortIndex}, label=CohortStep5]
+	\# Dependencias
+	import seaborn as sns
+	import matplotlib.pyplot as plt
+	\# Calulo de la matriz de retencion
+	cohort_sizes = cohort_counts.iloc[:,0]
+	retention = cohort_counts.divide(cohort_sizes, axis=0)
+	retention.round(3) * 100
+	\# Visualizacion de matriz de retencion.
+	plt.figure(figsize=(35, 30))
+	plt.title('Retention rates')
+	sns.heatmap(data = retention,
+	yticklabels=df['CohortMonth'].sort_values().apply(lambda x: x.strftime("%Y %b, %d")).unique(),
+	annot=True,
+	linewidths=.2,
+	fmt='.0%',
+	cmap='coolwarm',
+	vmin=0,
+	vmax=1)
+	plt.show()
+\end{lstlisting}
+
+La gráfica \ref{fig:CohortesCount} nos muestra el resultado final de las anteriores codificaciones, en los registros correspondientes a la primera columna podemos observar que la taza de retención es siempre del $100\%$ esto se debe a que son los clientes que tienen su primer actividad de compra dentro de ese cohorte, de tal forma que los registros de las columnas posteriores representan la actividad de los clientes después de su adquisición, por ejemplo, el cohorte enero de 2022 en el segundo mes\footnote{Ya que cada numero es una representación simplificada de cada cohorte, es importante tomar en cuenta que dicho numero se toma apartir del cohorte inicial, por ejemplo, para el cohorte enero de 2022 el numero 1 es igual al mismo mes, en cambio el numero 2 significa febrero de 2022, de forma similar el numero 3 es equivalente a marzo del 2022 y así sucesivamente hasta llegar al ultimo mes, por consecuencia ultimo mes solo tendrá datos hasta el indice 1, el penúltimo contiene información hasta el indice 2, etc.} (febrero de 2022) podemos observar una retención del $76\%$ de los clientes iniciales y para el ultimo indice podemos notar que se mantuvieron $64\%$ de los clientes que iniciaron en enero del 2022, esto quiere decir que en \textbf{Fecha final} se perdió el $36\%$ de los clientes ingresados en enero de 2022, esto dicho grupo de clientes tiene un comportamiento de compra habitual y guardan cierta fidelidad.
+
+
+Similarmente, los clientes adquiridos en agosto de 2022 tienen un comportamiento similar hasta 6 meses después de la adquisición, sin embargo es a aparir del mes 7 que este comportamiento baja al $40\%$. El general la tasa de retención de clientes adquiridos en cada cohorte es bajo , ya que para el mes más reciente de cada cohorte podemos notar una baja tasa de retención, lo cual indica que la empresa ha perdido más clientes de los que ha ganado en los últimos meses.
+
+
+
+%\begin{wrapfigure}{l}{0.25\textwidth}
+\begin{figure}[p]
+	\vspace{-55mm}
+	\hspace*{-5cm}
+	\
+	%\centering
+	\includegraphics[scale=.3]{Gráficas e Imagenes/Cohort.png}
+	\caption{Matriz de Cohortes.}
+	\label{fig:CohortesCount}
+\end{figure}
+%\end{wrapfigure}
+
+
+\section{Inteligencia artificial explicable (XAI)}
+
+\subsection{SHAP}
+
+\subsection{LIME}
+
+\subsection{Importancia de características}
+
+\begin{comment}
 En este capitulo se presentará la teoría acerca de las herramientas de Machine Learning (ML) y metodologías utilizadas para el caso de estudio abordado en este trabajo, así como los dos enfoques del ML, estos son el aprendizaje supervisado, siendo del tipo clasificación binaria, y aprendizaje no supervisado para el caso de la segmentación de clientes (clustering). 
 
 Además abordaremos temas previos y de suma importancia en toda implementación de ML, como la obtención de la información, preparación de los datos, visualización, etc.
@@ -26,18 +489,9 @@ Además abordaremos temas previos y de suma importancia en toda implementación 
 
 %\section{Diseño}
 
-\section{Preparación de los datos y recolección de los datos.}
-
-Una parte crucial en toda implementación de Machine Learning es la calidad de los datos, y es algo que cuando se hacen implementaciones sobre información real cobra mucha relevancia, ya que en términos generales es deber del científico de datos a cargo, asegurarse que dicha información sea de calidad.
-
-Ya sea asegurarse del cumplimiento de los supuestos que cada modelo de machine learning demanda ó bien, asegurarse que la calidad de la información sea la adecuada para poder obtener las mejores estimaciones y evitar problemas de Under-fitting o Over-fitting.
+%\section{Preparación de los datos y recolección de los datos.}
 
 
-En la mayoría de las implementaciones de Machine Learning necesitamos recolectar la información desde alguna fuente de origen, ya sea una base de datos, data lake o cual sea la fuente de la que provengan nuestros datos, por lo cual sera de vital importancia tener total conocimiento acerca del sistema de origen de la información. En consecuencia parte del pipeline que se va a preparar comprende la extracción de la información y en algunos casos preparar un primer procesamiento que nos asegure trabajar con el nivel de especificación que deseamos.
-
-Para el caso particular presentado en este trabajo, es necesario asegurarnos que el nivel máximo de detalle en nuestros datos sean clientes, osea que cada campo y registro debe hacer referencia a información de los clientes, como su historial de compras, año de registro, etc. Y por lo tanto un primer paso sería validar que estemos trabajando con registros únicos.
-
-En consecuencia es importante conocer todos los detalles posibles de los datos con los que vamos a trabajar, tanto en lo concerniente al negocio o a las propiedades inherentes de los datos, esto sera mejor abordado en el siguiente apartado.
 
 \subsection{Datos Faltantes y Outlier}
 
@@ -207,3 +661,6 @@ Según \cite{Rodriguez2018}
 
 
 \subsection{Metricas de Ajuste (Evaluación)}
+
+
+\end{comment}

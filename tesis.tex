@@ -16,6 +16,8 @@
 \usepackage{xcolor}
 \usepackage{url}
 \usepackage{hyperref}
+\usepackage[most]{tcolorbox}
+
 
 \usepackage[round, sort, authoryear]{natbib}  % Personalizar la bibliografía a gusto de cada quien
 %\usepackage{lmodern}
@@ -27,10 +29,22 @@
 \include{Latex/Macros/MacroFile1}           % Archivo con funciones útiles
 
 \usepackage{tikz}
-\usetikzlibrary{mindmap,trees}
+\usetikzlibrary{mindmap,trees, shapes.geometric, arrows.meta, positioning}
+
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=2.5cm, minimum height=1cm,text centered, draw=black, fill=gray!20]
+\tikzstyle{process} = [rectangle, minimum width=2.5cm, minimum height=1cm, text centered, draw=black, fill=red!20]
+\tikzstyle{decision} = [diamond, minimum width=3.5cm, minimum height=1cm, text centered, draw=black, fill=gray!10, aspect=2]
+\tikzstyle{arrow} = [thick, ->, >=stealth]
+\tikzstyle{smile} = [text centered]
+\tikzstyle{textnode} = [minimum width=1cm, minimum height=0.5cm]
+
+
 \usepackage{verbatim}
 %\usepackage{minted}
 \usepackage{listings}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
@@ -56,12 +70,14 @@
 	tabsize=2
 }
 
+
+
 \lstset{style=mystyle}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   DATOS                                      %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{Análisis del comportamiento de clientes en una empresa mediante modelos de aprendizaje automático para la predicción del Churn Rate y segmentación de clientes con Python}
+\title{Modelos Explicables de Machine Learning para la predicción del Churn y calculo del churn Rate}
 \author{Carlos Espadin Medina} 
 \facultad{Facultad de Estudios Profesionales Campus Acatlán}                 % Nombre de la facultad/escuela
 \escudofacultad{Latex/Classes/Escudos/fi_azul} % Aquí ponen la ruta y nombre del escudo de su facultad, actualmente, la carpeta Latex/Classes/Escudos cuenta con los siguientes escudos:
@@ -82,7 +98,7 @@
 
 
 %% Opciones del posgrado (descomentar si las necesitan)
-	%\posgradotrue                                                    
+	%\postrue                                                    
 	%\programa{programa de maestría y doctorado en ingeniería}
 	%\campo{Ingeniería Eléctrica - Control}
 	%% En caso de que haya comité tutor
@@ -105,7 +121,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 
-\maketitle									% Se redefinió este comando en el archivo de la clase para generar automáticamente la portada a partir de los datos
+\maketitle	% Se redefinió este comando en el archivo de la clase para generar automáticamente la portada a partir de los datos
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                  PRÓLOGO                          %

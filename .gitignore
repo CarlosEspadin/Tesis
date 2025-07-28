@@ -224,3 +224,7 @@ TSWLatexianTemp*
 # Suprimir los archivos de Sebastian
 *Tesis-Sebastian*
 
+# Suprimir virtual enviroment
+
+/my_env
+
