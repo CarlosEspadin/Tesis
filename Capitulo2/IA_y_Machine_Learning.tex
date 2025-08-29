@@ -14,6 +14,10 @@
 \definecolor{Grey}{rgb}{0.75,0.75,0.75}
 \definecolor{Brilliantrose}{rgb}{1.0,0.33,0.64}
 \definecolor{Darkblue}{rgb}{0.0,0.0,0.55}
+\definecolor{Amber}{rgb}{1.0, 0.75, 0.0}
+\definecolor{Gray}{rgb}{0.5, 0.5, 0.5} % Gris medio
+
+
 
 % Cuadro numerado para ejemplos
 \newtcolorbox[auto counter,number within=section]{example}[2][]
@@ -213,9 +217,12 @@ En términos generales este enfoque es muy parecido al ejemplo del diagrama \ref
 
 En términos matemáticos el sistema buscar aprender una función que explique la relación entre las variables de entrada, el cual común mente es llamado matriz de características o variables explicativas, y la variable objetivo. Este proceso puede expresarse de las siguiente manera:
 
-\begin{equation}
-	f: \mathbb{R}^{n\times m} \rightarrow \mathbb{R}^n
-\end{equation}
+\begin{micaja2}
+	\begin{equation}
+		f: \mathbb{R}^{n\times m} \rightarrow \mathbb{R}^n
+	\end{equation}
+	\label{EC:MapaML}
+\end{micaja2}
 
 Donde $ \mathbb{R}^{n\times m} $ representa la matriz de características con $n$ observaciones o filas y $m$ características o columnas, por otra parte $\mathbb{R}^n$ es la variable objetivo o termino dependiente, este mismo es el vector de los valores de salida esperados de orden $n$, además nos referiremos a $f$ como "modelo".
 
@@ -266,17 +273,483 @@ El diagrama \ref{fig:ZoomAprendizaje} nos muestra que los problemas de regresió
 
 El churn se puede reducir a un problema de clasificación, más en especifico a una clasificación binaria. Los algoritmos de clasificación permiten predecir la pertenencia de una observación a una categoría o clase definida. En el contexto del churn, el objetivo es predecir si un cliente se mantendrá activo o si abandonará la empresa en un periodo determinado.
 
-A continuación, se presentan algunos de los algoritmos de clasificación más comunes y efectivos utilizados para este propósito:
+En el entorno del Machine Learning, un algoritmos de clasificación son esenciales para poder resolver problemas donde el objetivo es asignar una etiqueta o categoría a un conjunto de datos a partir de las características o variables explicativas. Estos algoritmos construyen modelos predictivos que aprenden patrones a partir de ejemplos históricos que ya está etiquetados, a este conjunto de datos solemos llamarlo conjunto de entrenamiento, para después poder clasificar nuevos registros con base en los datos ya aprendidos. Retomando un poco el problema del abandono de cliente, el objetivo es predecir si un cliente continuara o no en una empresa, con lo que se puede representar como una variable binaria, puede ser 1 para los clientes que abandonan y 0 para los cliente que permanecen. 
 
-\textbf{Hasta acá termina mi avance}
+Existen varios algoritmos de clasificación, cada uno con sus defectos y virtudes, el qué algoritmo escoger depende de múltiples factores entre ellos la naturaleza de los datos, que interpretabilidad queramos darle a nuestro problema e inclusive el costo computacional. En este trabajo vamos a considerar cuatro algoritmos clásicos en el aprendizaje automático y más en especifico en los problemas de clasificación.
+
+Con base a \cite{2017Géron} enuncio el siguiente teorema, que explica lo anterior:
+
+\begin{teorema}[colback=gray!10, colframe=black!40!black, title=Teorema No-Free-Lunch]
+	
+Sea $\mathcal{F}$ el conjunto de todas las funciones posibles entre un espacio de entrada $\mathcal{X}$ y un conjunto de salidas $\mathcal{Y}$. Si se considera un conjunto $\mathcal{A}$ de algoritmos de aprendizaje supervisado o de optimización que operan sobre $\mathcal{F}$, entonces:
+
+\[
+\frac{1}{|\mathcal{F}|} \sum_{f \in \mathcal{F}} \text{Performance}(A_i, f) = \frac{1}{|\mathcal{F}|} \sum_{f \in \mathcal{F}} \text{Performance}(A_j, f) \quad \forall A_i, A_j \in \mathcal{A}
+\]
+
+Es decir, el rendimiento promedio de todos los algoritmos es el mismo cuando se consideran todas las funciones posibles. No existe un algoritmo universalmente mejor sin asumir algún conocimiento previo (sesgo inductivo) sobre el problema.
+	
+\end{teorema}
+
+Este teorema trae una serie de insinuaciones profundas, el hecho de que no exista un modelo de clasificación ``ideal", esto nos obliga a realizar una serie de validaciones rigurosas de forma práctica para determinar el mejor modelo, osea el que se acople mejor a nuestro conjunto de datos en particular. En nuestro caso, para el churn esto se traduce en que diferentes dataset, como los que tengan granularidad por sector, región o productos, etc., pueden necesitar distintos modelos para lograr una buena generalización.
+
+
+A continuación, se abordara la teoría de los algoritmos utilizados en la predicción de churn, vamos a poner especial foco en sus fundamentos, ventajas, limitaciones y su interpretabilidad. Es importante remarcar que en este trabajo abordaremos el problema de clasificación binaria, el cual es un caso particular de la clasificación múltiple.
+
+\newpage
 
 \subsubsection{Regresión logística}
 
-\subsubsection{KNN}
+\begin{wrapfigure}{r}{0.45\textwidth}
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			width=\linewidth,
+			height=6cm,
+			scale only axis,
+			title={},
+			xlabel={$x$},
+			ylabel={$\sigma(x)$},
+			legend style={font=\tiny, at={(0.05,0.95)}, anchor=north west},
+			tick label style={font=\small},
+			xmin=-8.5, xmax=8.5,
+			ymin=-0.1, ymax=1.1,
+			axis lines=middle,
+			grid=major,
+			]
+			% 1. Gráfica de la función sigmoide
+			\addplot[blue, thick, domain=-8:8, samples=100] {1 / (1 + exp(-x))};
+			\addlegendentry{Sigmoide}
+			% 2. Asíntotas horizontales
+			\addplot[gray, dashed, domain=-8:8] {1};
+			\addlegendentry{$y=1$}
+			\addplot[gray, dashed, domain=-8:8] {0};
+			\addlegendentry{$y=0$}
+			% 3. Punto de inflexión en (0, 0.5)
+			\node[circle, fill=red, inner sep=1.5pt] at (axis cs:0,0.5) {};
+			\node[pin={[pin edge={red, thick}, font=\tiny]-45:{(0,0.5)}}] at (axis cs:0,0.5) {};
+		\end{axis}
+	\end{tikzpicture}
+	\caption{Función Sigmoide.}
+	\label{fig:sigmoide-wrap}
+\end{wrapfigure}
+
+La regresión logística es uno de los modelos más clásicos y popularmente usados en la predicción del churn. Este algoritmo nos ayuda a clasificar las observaciones de nuestro conjunto de datos en dos o más categorías. Básicamente deseamos determinar una regla de decisión a partir de n variables y asignar una respuesta que puede tomar dos o más valores. Más aun tomando en cuenta el mapa \eqref{EC:MapaML} podemos derivar la siguiente función:
+
+\[
+	f :x\in \mathbf{R}^{n\times m} \rightarrow y^n\in  \{0,1\}
+\]
+
+Lo anterior explica la relación que determinaremos con ayuda de los algoritmos de clasificación binaria en general, incluyendo a la regresión logística y los demás modelos que abordaremos en esta tesis. Aun que antes de entrar en materia con la función sigmoide y la regresión logística conviene mencionar retomar un concepto que de hecho es una generalización de la misma regresión logística, este es la regresión lineal simple, osea vamos a asumir que solo tendremos una variable predictora. A continuación enunciaremos la definición del modelo de regresión lineal simple.
+
+\begin{definicion}{Definición: Regresión Lineal simple}
+	Un modelo estadístico lineal que relaciona una respuesta aleatoria $Y$ con una variable independiente $x$ es de la forma:
+	\begin{equation}
+		Y = \beta_0 + \beta_1 x_1 + \varepsilon
+	\label{EC:RLineal}
+	\end{equation}
+	
+	Además supondremos que $\mathbb{E}[\varepsilon] = 0$ y por tanto:
+	\begin{equation}
+		\mathbb{E}[Y|x] = \beta_0 + \beta_1 x
+		\label{EC:RLinealAjustado}
+	\end{equation}
+	
+	donde:
+	
+	- $\beta_0 \in \mathbb{R}$ es el intercepto (o término independiente).
+	
+	- $\beta_1 \in \mathbb{R}$ es el coeficiente de x.
+	
+	- $\varepsilon \sim \mathcal{N}(0, \sigma^2)$ representa un término de error aleatorio.
+	
+
+	\begin{comment}
+			El objetivo del modelo es encontrar los parámetros $\beta_0$ y $\beta_1$ que minimicen el error cuadrático medio (ECM), es decir:
+		
+		\begin{equation}
+			L:\min\sum_{i=1}^N (Y - \beta_0 - x \beta_1)^2
+		\end{equation}
+		A este procedimiento se conoce como \textit{mínimos cuadrados ordinarios (OLS)}.
+	\end{comment}
+\end{definicion}
+
+La regresión lineal al igual que la covarianza y el coeficiente de correlación (lineal) de pearson, nos ayudan a determinar y analizar la relación entre dos variables, sin embargo la regresión lineal va más allá porque nos permite medir el grado de asociación entre dos variables, nos permite imitar un modelo que describa la relación entre estas variables, poder predecir el comportamiento de una de ellas a partir de valores de la otra y hacer mejores inferencias sobre la variable de iteres. Pero la importancia de la regresión lineal, en esta tesis, recide en que con ayuda de esta podemos deducir la función logística, y es que ambos comparten un núcleo en común, la ecuación $\beta_0 +\beta_1 x$, aun que la diferencia radica en como la regresión logística adapta brillantemente esta ecuación, lo conecta a través de la transformación "sigmoide", lo cual le permite usar el poder y la simplicidad de un modelo lineal y aplicarlo para resolver un problema de clasificación, a continuación la definición del modelo.
+
+
+
+\begin{definicion}{Regresión Logística Binaria simple}
+	Dado un conjunto de datos $\mathcal{D}$ con $N$ pares de entrada y etiqueta binaria $(x_n,y_n)$. El modelo de regresión logística es un modelo lineal generalizado que relaciona la probabilidad de ocurrencia de un evento binario \( Y  \) con un predictor $x\in \mathbb{R}^n$ mediante la siguiente ecuación:
+	
+	\[
+	\mathbb{P}(Y = 1 \mid x) = \frac{1}{1 + e^{\left( - (\beta_0 + \beta_1 x) \right)}}
+	\]
+	
+	o equivalentemente, en términos del logit (log-odds):
+	
+	\[
+	\ln\left( \frac{\mathbb{P}(Y = 1|x)}{1 - \mathbb{P}(Y = 1)} \right) = \beta_0 + \beta_1 x
+	\]
+	
+	Aquí, \( \beta_0, \beta_1\) son los coeficientes del modelo. La función logística transforma la combinación lineal de los predictores en una probabilidad dentro del intervalo $[0, 1]$.
+\end{definicion}
+
+De forma ilustrativa vamos a ``demostrar'' el modelo logístico a partir de la ecuación logística. El objetivo es modelar la probabilidad de una variable de repuesta binaria, osea la probabilidad de que $Y=1$ dado un predictivo $x$, a esta probabilidad la denotaremos como $\mathbb{P}(Y=1|x)=p(x)\in [0,1]^n$. Si tomamos en consideración la igualdad \eqref{EC:RLineal}, la idea es determinar una función $L(x)$ tal que:
+
+\begin{equation}
+	L(x)=\beta_0+\beta_1 x
+	\label{EC:Lx}
+\end{equation}
+
+Sin embargo, podemos notar que $(\beta_0+\beta_1 x)\in \mathbb{R}^n$, lo cual contradice el rango que necesitamos que tome $p(x)$. Por otra parte si consideramos a \eqref{EC:RLinealAjustado}, el cual suele ser llamado modelo ajustado o determinista, podemos notar que es exactamente igual a \eqref{EC:Lx}. Por otra parte, un resultado que tenemos que tener en cuenta es la función sigmoide, la cual esta definida de la siguiente manera:
+
+\begin{equation}
+	\sigma(t)=\frac{1}{1+e^{-t}}=\frac{e^t}{1+e^t}
+\end{equation}
+
+Ahora bien, si aplicamos una composición de funciones $\rho ° L$ de tal forma que:
+
+\begin{align*}
+	p(x) &= \sigma(L(x)) \\
+	&= \sigma(\beta_0+\beta_1 x) \\
+	&= \frac{1}{1+e^{-(\beta_0+\beta_1 x)}}
+\end{align*}
+
+De esta manera podemos ver la intrínseca relación que existe entre la regresión lineal y la logística, por lo cual este ultimo hereda algunos supuestos y propiedades de la regresión lineal, las cuales son:
+
+\begin{enumerate}
+	\item \textbf{Independencia.} Las observaciones son independientes entre sí
+	
+	\item \textbf{Relación lineal entre los predictores y el LOGIT del resultado. } Se asume que la transformación logit de la probabilidad es una función lineal de las variables predictoras.
+	
+	\item \textbf{ Ausencia de multicolinealidad.} Las variables predictoras (las "x") no deben estar altamente correlacionadas entre sí. 
+	
+	\item \textbf{Tamaño de muestra suficientemente grande.} Sí la regresión logística se basa en la estimación por máxima verosimilitud, cuyas propiedades (como la normalidad de los coeficientes) son asintóticas, es decir, se cumplen mejor con muestras grandes. Una regla general es tener al menos 10 eventos (el resultado menos frecuente) por cada variable predictora que se incluya en el modelo.
+	
+\end{enumerate}
+
+Otro concepto que resulta crucial mencionar es la función de perdida, este concepto esta intimamente relacionado a uno que suele usarse mucho en el campo de la probabilidad, este es la entropía, que en pocas palabras es la medida cuantitativa de de la indeterminación de cualquier variable aleatoria con un número finito de resultados posibles. En nuestro caso nos apoyamos de este concepto para hacer una evaluación del modelo y poder determinar que tan acertadas fueros las clásificaciones con respecto a las observaciones reales, en ocaciones se le llama función de perdida pero también es conocida como función de entropía cruzada binaria, esto nos permite saber que tan ajustado o no esta nuestro modelo a los datos de entrenamiento y asegurar que nuestro modelo generalice bien, en otras palabras es nuestra principal arma para regularizar el sobre ajuste. La función de pérdida de la regresión logística se puede estimar haciendo uso de la estimación por máxima verosimilitud, a continuación mostraremos la definición de dicha función:
+
+\begin{definicion}{Función de Costo con Entropía Cruzada Regularizada}
+	Dado un conjunto de datos $\mathcal{D}$ con $N$ pares de entrada y etiqueta binaria $(x_n,y_n)$, donde $y_n\in[0,1]$, y un modelo que predice la probabilidad $\hat{y}_n=\sigma(x_n)$, la función de costo regularizada $J(\beta)$ que se minimiza para encontrar los coeficientes óptimos del modelo 
+	beta se define como:
+	
+	\begin{equation}
+		J(\beta) = \left( \frac{1}{N} \sum_{n=1}^{N} l(y_n, \hat{y}_n) \right) + \lambda \cdot R(\beta)
+		\label{eq:costo_regularizado}
+	\end{equation}
+	
+	donde el primer término es la \textit{pérdida de entropía cruzada promedio} y el segundo es el \textit{término de regularización}. La pérdida individual $l(y, \hat{y})$ sigue siendo:
+	
+	\begin{equation}
+		l(y, \hat{y}) = -[y \log(\hat{y}) + (1-y)\log(1-\hat{y})]
+	\end{equation}
+	
+	El término de regularización $R(\beta)$ depende del tipo de penalización elegida:
+	\begin{itemize}
+		\item \textbf{Penalización L2 (Ridge):} $R(\beta) = \frac{1}{2} \sum_{j=1}^{m} \beta_j^2$
+		\item \textbf{Penalización L1 (Lasso):} $R(\beta) = \sum_{j=1}^{m} |\beta_j|$
+	\end{itemize}
+\end{definicion}
+
+Si bien la función de perdida de entropía cruzada por si sola nos ayuda a construir mejores modelos y evitar el sobre ajuste, más adelante hablaremos más acerca de este concepto, una iterpretación que podemos darle es que esta ecuación nos permite encapsula los dos escenarios posibles:
+\begin{itemize}
+	\item Cuando la clase real es \textbf{positiva ($y=1$)}, el segundo término se anula ($1-y=0$), y la pérdida se simplifica a: $l(1, \hat{y}) = -\log(\hat{y})$.
+	\item Cuando la clase real es \textbf{negativa ($y=0$)}, el primer término se anula ($y=0$), y la pérdida se simplifica a: $l(0, \hat{y}) = -\log(1-\hat{y})$.
+\end{itemize}
+
+De tal forma que la fórmula nos ayuda medir la discrepancia entre la probabilidad predicha y la etiqueta verdadera, activando el término correspondiente para cada caso. Ahora bien, en la practica no siempre es conveniente minimizar esta función directamente, lo ideal sería no minimizar la función de pérdida directamente, sino hacer uso de una función de costo regularizada y terminos de regularización. 
+
+La formula \eqref{eq:costo_regularizado} nos permite incitar a nuestro modelo a ser más preciso, mientras que el término de regularización $R(\beta)$ lo empuja a ser más simple al penalizarlo los coeficientes más grandes.
+
+Sabiendo esto, la verdadera magia ocurre cuando generalizamos este modelo para añadir más caracteristicas, esta generalización del modelo es clave para resolver más problemas de la vida real, como el churn, donde el comportamiento de un cliente rara vez se explica por un único factor. La definición de este modelo es la siguiente:
+
+\begin{definicion}{Regresión Logística Binaria múltiple}
+	
+	El modelo de regresión logística es un modelo lineal generalizado que relaciona la probabilidad de ocurrencia de un evento binario \( Y \in \{0, 1\} \) con un conjunto de variables independientes \( x_1, x_2, \ldots, x_k \) mediante la siguiente ecuación:
+	
+	\[
+	\mathbb{P}(Y = 1 \mid x_1, x_2, \ldots, x_k) = \frac{1}{1 + \exp\left( - (\beta_0 + \beta_1 x_1 + \cdots + \beta_k x_k) \right)}
+	\]
+	
+	o equivalentemente, en términos del logit (log-odds):
+	
+	\[
+	\log\left( \frac{\mathbb{P}(Y = 1)}{1 - \mathbb{P}(Y = 1)} \right) = \beta_0 + \beta_1 x_1 + \cdots + \beta_k x_k
+	\]
+	
+	Aquí, \( \beta_0, \beta_1, \ldots, \beta_k \) son los coeficientes del modelo. La función logística transforma la combinación lineal de los predictores en una probabilidad dentro del intervalo \( (0, 1) \).
+	
+\end{definicion}
+
+Entre otras cosas algunos de los aspectos más valiosos de la regresión logística, y una de las principales causas de su popularidad en diversas disciplinas e industrias al rededor del mundo, es la capacidad para interpretar sus resultados, y sobre todos los coeficientes del mismo. Esto a diferencia de modelos más complejos, nos permite darle una interpretación más directa y versátil. Por ejemplo el coeficiente $\beta_k$ con $k=0, 1, 2,...$ se puede interpretar como una escala de crecimiento aditivo, si $x_k$ aumenta en una unidad, se suma $\beta_k$ al logit, esto si se mantienen contrastantes las demás variables $x_j$ con $j\neq k$, por otra parte el OR (Odds Ratio), que se calcula como $e^{\beta_k}$, si $x$ aumenta en una unidad, se multiplica los odds por el $OR(e^{ \beta_k })$.
+
+Según \cite{james2013introduction} la estimación de los coeficientes $\beta_k$ se hace mediante el método de Máxima Verosimilitud o por su abreviación en inglés MLE (Maximum Likelihood Estimation), el objetivo de este estimador es encontrar los valores de los coeficientes que meximisen la probabilidad de haber observado los datos de entrenamiento tal cual son. 
+
+Pese a la excelente explicabilidad del modelo de regresión logistica, una de sus principales limitaciones es el supuesto de linealidad del logit, se asume que la frontera de desición que asigna a una clase u otra es lineal. Sin embargo, no siempre se cumple directamente este supuesto en problemas del mundo real, en especial el churn, aun que se pueden aplicar transformaciones previas para tratar de cumplir este supuesto, podemos apelar al uso de otros algoritmos que nos brenden mayor fexibilidad.
+
+
+\newpage
+
+\subsubsection{K Nearest Neighborns}
+
+Este es un algoritmo perteneciente al dominio del aprendizaje automatico, más especifico, aprendizaje supervisado. Se dice que este algoritmo es un clásificador no parametrico, es decir, no hace suposiciones explicitas sobre la forma funcional de los datos, evitando modelar mal la distribución subyyacente de los datos.
+
+% --- MOVER FIGURA AQUÍ, AL INICIO DEL PÁRRAFO ---
+\begin{wrapfigure}{r}{0.4\textwidth}
+	\centering
+	\resizebox{\linewidth}{!}{%
+		\begin{tikzpicture}
+			% --- Estilos para las figuras ---
+			\tikzset{
+				cuadrado/.style={
+					shape=rectangle,
+					draw=black, 
+					fill=cyan, 
+					minimum size=0.6cm,
+					inner sep=1pt
+				},
+				triangulo/.style={
+					shape=regular polygon, 
+					regular polygon sides=3, 
+					draw=black, 
+					fill=red, 
+					minimum size=0.7cm,
+					inner sep=0.5pt, 
+					shape border rotate=180
+				}
+			}
+			
+			% --- Lienzo ---
+			\def\canvaswidth{8}
+			\def\canvasheight{7.5}
+			\fill[gray!30] (0,0) rectangle (\canvaswidth,\canvasheight);
+			
+			% --- Coordenada del centro ---
+			\coordinate (center) at (\canvaswidth/2, \canvasheight/2);
+			
+			% --- Colocación de los puntos de datos ---
+			\node[cuadrado] at (1.1, 6.8) {};
+			\node[cuadrado] at (1.5, 5.2) {};
+			\node[cuadrado] at (0.8, 3.5) {};
+			\node[cuadrado] at (1.3, 1.5) {};
+			\node[cuadrado] at (6.1, 6.3) {};
+			\node[cuadrado] at (6.8, 2.4) {};
+			\node[cuadrado] at (2.9, 3.1) {};
+			
+			\node[triangulo] at (2.5, 7.1) {};
+			\node[triangulo] at (4.2, 7.3) {};
+			\node[triangulo] at (6.0, 7.0) {};
+			\node[triangulo] at (4.5, 5.5) {};
+			\node[triangulo] at (5.1, 3.6) {};
+			
+			% --- Punto central y círculos ---
+			\node[font=\Huge] (punto) at (center) {\textbf{?}};
+			\draw[line width=1.5pt] (punto) circle (1.5cm);
+			\draw[line width=1.5pt] (punto) circle (2.4cm);
+		\end{tikzpicture}%
+	} % Fin del \resizebox
+	\caption{La categoría objetivo del punto \textbf{?} varía con el número de nodos más adyacentes.}
+	\label{Fig:KNNejemplo}
+\end{wrapfigure}
+
+De hecho el algoritmo hace un aprendizaje basado en instancias, aveces llamado ``aprendizaje perezoso'' o lazy learning, esto quiere decir que, el algoritmo no aprende parametros apartir de los datos de entrenamiento, en cambio memoriza las instancias de formación que posteriormente se utilizan como ``conocimiento'' para la fase predictiva. Esto contrasta con otros tipos de aprendizaje que van construyendo el modelo de clasificación durante la fase de entrenamiento y posteriormente descartan los datos con los que se entreno el modelo, esto una vez que el modelo esta listo, a esto se le suele llamar ``aprendizaje ansioso'' o eager learners y algunos de sus principales exponentes son los modelos basados en redes neuronales o support vector machines
+
+Hay un par de frases que describe a la perfección el modelo ``el que con lobos anda, a aullar se enseña'' o ``dime con quién andas y te diré quién eres'', el principio es sencillo, el algoritmo busca en las cercanias, o espacio, los puntos ``K'' con mayor proximidad de un nuevo dato (de ahí el nombre K vecinos), tales que una vez contados el numero de puntos asignados a cada clase asigna el nuevo dato a la categoria con más vecinos en ella. Por ejemplo si K=5 y 3 de los 5 vecinos más cercanos son clientes ``Churn", el nuevo cliente será clasificado como ``Churn". A continuación mostraremos el algoritmo del modelo de K Nearest Neighborns. Dado un nuevo punto de datos $\mathbf{x_{new}}$ que se desea clasificar, un conjunto de entrenamiento ($\mathbf{X_{train}}$, $\mathbf{y_{train}}$), un número entero K y una métrica de distancia d:
+
+\begin{enumerate}
+	\item \textbf{Calcular distancias:} Se calcula la distancia $d(\mathbf{x}_{new}, \mathbf{x}_i)$ entre el nuevo punto y todos los puntos $\mathbf{x}_i$ en el conjunto de entrenamiento.
+	\item \textbf{Identificar vecinos:} Se identifican los $K$ puntos del conjunto de entrenamiento que tienen las distancias más pequeñas a $\mathbf{x}_{new}$. Este conjunto de puntos se denomina $\mathcal{N}_K(\mathbf{x}_{new})$.
+	\item \textbf{Votación por mayoría:} La predicción de la clase para $\mathbf{x}_{new}$, denotada como $\hat{y}_{new}$, se determina por la clase mayoritaria dentro de sus $K$ vecinos:
+	$$
+	\hat{y}_{new} = \underset{c \in \{\text{clases}\}}{\text{argmax}} \sum_{(\mathbf{x}_i, y_i) \in \mathcal{N}_K(\mathbf{x}_{new})} I(y_i = c)
+	$$
+	donde $I(\cdot)$ es la función indicadora.
+\end{enumerate}
+
+Según la explicación anterior podemos darnos cuenta que el algoritmo KNN trae consigo dos desiciones fundamentales: la elección del número de vecinos $K$ y la métrica de distancia, el valor de $K$ nos puede ayudar a controlar el equilibrio entre sesgo y varianza, mientras que la distancia nos ayuda a medir la proximidad entre las nuevas observaciones y los grupos de categorias. Por lo cual asegurar la elección del numero de vecinos $K$ y la métrica de distancia $d$ es una decisión cruzial, ya que definen por completo el comportamiento del modelo y su capacidad para generalizar a nuevos datos.
+
+\paragraph{La métrica de distancia:} Como mensionamos anteriormente el concepto de ``proximidad'' o ``similitud'' es la escencia del modelo K Nearest Neighborns, es la forma en que medimos que tan parecidos son las observaciones entre sí y esto se hace haciendo uso la idea de distancia o metrica. Para elegir la metrica adecuada es necesario tomar en cuenta el escalado de las caracteristicas, por ejemplo, si nuestras variables predictoras se encuentran en distintas escalas, ingresos en miles de millones de pesos, antiguedad en meses o cantidad de productos, la variable que tenga la mayor escala dominara el cálculo de la distancia, ensombreciendo la contribución de las demás. Por ende, es una buena practica normalizar o estandarizar los datos entes de aplicar KNN.
+
+Las métricas más comunes son:
+
+\begin{definicion}{Distancia Euclidiana (L2)}
+	Dada la existencia de dos puntos, $\mathbf{p} = (p_1, p_2, \dots, p_n)$ y $\mathbf{q} = (q_1, q_2, \dots, q_n)$, en un espacio n-dimensional, la distancia euclidiana se define como la raíz cuadrada de la suma de las diferencias al cuadrado de sus coordenadas correspondientes.
+	
+	\[
+	d(\mathbf{p}, \mathbf{q}) = \sqrt{\sum_{i=1}^{n}(q_i - p_i)^2}
+	\]
+	
+	Esta métrica corresponde a la norma L2 del vector diferencia $\mathbf{q} - \mathbf{p}$.
+\end{definicion}
+
+Para comprender esta metrica podemos pensarlo como medir una línea recta, que es la forma más intuitiva que tenemos de medir cosas en la vida real, suele usarse cuando tenemos datos geoespaciales, cuando el conjunto de datos es denso y tenemos pocas dimensiones y cuando las variables predictoras son de naturaleza similar y continuas, ejemplo pesos, alturas, etc. La unica desventaja es que es muy sensible a outliers.
+
+La siguiente distancia es conocida como distancia de Manhattan, distancia del taxista o distancia de la ciudad, a continuación mostramos su definición. 
+
+\begin{definicion}{Distancia de Manhattan (L1)}
+	Para dos puntos $\mathbf{p}$ y $\mathbf{q}$ en un espacio n-dimensional, la distancia de Manhattan es la suma de las diferencias absolutas de sus coordenadas. Es la distancia que se recorrería entre dos puntos si solo se permitieran movimientos a lo largo de los ejes.
+	
+	\[
+	d(\mathbf{p}, \mathbf{q}) = \sum_{i=1}^{n}|q_i - p_i|
+	\]
+	
+	Esta métrica corresponde a la norma L1 del vector diferencia $\mathbf{q} - \mathbf{p}$.
+\end{definicion}
+
+Esta métrica es conveniente usarla en espacios de alta dimensionalidad, cuando las características son dispares o no tienen correlación aparente, cuando tienes variables muy sesgadas y por lo tanto quieres evitar la sensibilidad a los outliers.
+
+Finalmente tenemos la distancia de Minkowski, la cual es una generalización de las dos anteriores y esta definida de la siguiente manera.
+
+\begin{definicion}{Distancia de Minkowski (Lp)}
+	Es una generalización de las distancias Euclidiana y de Manhattan que introduce un parámetro $p \ge 1$. Para dos puntos $\mathbf{p}$ y $\mathbf{q}$ en un espacio n-dimensional, se define como:
+	
+	\[
+	d(\mathbf{p}, \mathbf{q}) = \left( \sum_{i=1}^{n} |q_i - p_i|^p \right)^{1/p}
+	\]
+	
+	Casos especiales de esta distancia son:
+	\begin{itemize}
+		\item \textbf{p = 1:} Distancia de Manhattan.
+		\item \textbf{p = 2:} Distancia Euclidiana.
+		\item \textbf{p $\to \infty$:} Distancia de Chebyshev.
+	\end{itemize}
+\end{definicion}
+
+
+De igual manera la definición de valor de $K$ en el algoritmo, se debe hacer en el momento de la construcción del modelo, a $K$ se le conoce como hiperparametro\footnote{Suele definirse al hiperparametro como una variable externa al modelo, es decir, no se obtiene apartir de los datos, sino que debemos definir al momento de implementar el algoritmo.}, es importante remarcar que no existe un valor de $K$ que se acople a todo tipo de conjunto de datos, sino que el valor es subyacente a las propiedades del conjunto de datos en cuestión. En general una pequeña cantidad de vecinos baja tendra en consecuencia un bajo sesgo, pero una gran cantidad de vecinos tendra menor variabilidad pero un mayor sesgo, por lo cual elegir el número de vecinos es una tarea primordial.
 
 \subsubsection{Random Forest}
 
+De igual forma que en los modelos anteriores, ahora vamos a explicar el algoritmo Random Forest, expuesto por primera vez por Leo Breiman en 2001, cabe mensionar que este modelo es uno de los más importantes pertenecientes a una clase llamada algoritmo de ensamble. Su contrucción esta basada en la unión de multiples arboles de decisión durante el entrenamiento, esto nos permite emitir una clasificación que es el valor más común (moda) de las clases predichas por los árboles individuales. Por lo cual para entender al cien por ciento el funcionamiento de este modelo primero hay que hablar sobre su componente primario, los arboles de decisión.
+
+\begin{figure}[h!]
+	\centering
+	\begin{tikzpicture}
+		% --- ESTILOS (ligeramente ajustados) ---
+		\tikzset{scale=0.27,
+			% Estilo para nodos de decisión (rectángulos)
+			decision/.style={draw, rectangle, rounded corners, fill=blue!5, 
+				text width=2.5cm, text centered, minimum height=2.5em, font=\sffamily\small},
+			% Estilo para nodos hoja (elipses)
+			leaf/.style={draw, rectangle, fill=green!10,
+				text width=2cm, text centered, minimum height=2.5em, font=\sffamily\small},
+			% Estilo para las flechas de conexión
+			branch/.style={->, thick},
+			% Estilo para las etiquetas "Sí" y "No"
+			edge_label/.style={midway, sloped, font=\sffamily\small, fill=white, inner sep=1.5pt}
+		}
+		
+		% --- 1. DEFINICIÓN DE NODOS CON COORDENADAS (x, y) ---
+		% Nivel 0 (Raíz)
+		\node (root) [decision] at (0, 0) {¿Tiempo como cliente $> 24$ meses?};
+		
+		% Nivel 1
+		\node (a) [decision] at (-16, -7) {¿Promedio de gasto mensual $> \$50$?};
+		\node (b) [decision] at (16, -7) {¿Número de productos/servicios contratados $< 2$?};
+		
+		% Nivel 2
+		\node (a1) [leaf] at (-22, -22) {No Churn};
+		\node (a2) [decision] at (-9, -22) {¿Ha contactado a soporte técnico en los últimos 3 meses?};
+		
+		\node (b1) [decision] at (9, -22) {¿Ha mostrado disminución en el uso en el último mes?};
+		\node (b2) [leaf] at (22, -22) {No Churn};
+		
+		% Nivel 3 (Hojas)
+		\node (a21) [leaf, fill=red!10] at (-22, -37) {Churn (posible insatisfacción)};
+		\node (a22) [leaf] at (-5, -37) {No Churn};
+		
+		\node (b11) [leaf, fill=red!10] at (5, -37) {Churn (baja utilización)};
+		\node (b12) [leaf] at (22, -37) {No Churn};
+		
+		% --- 2. DIBUJO DE CONEXIONES Y ETIQUETAS ---
+		\draw[branch] (root) -- node[edge_label] {Sí} (a);
+		\draw[branch] (root) -- node[edge_label] {No} (b);
+		
+		\draw[branch] (a) -- node[edge_label] {Sí} (a1);
+		\draw[branch] (a) -- node[edge_label] {No} (a2);
+		
+		\draw[branch] (b) -- node[edge_label] {Sí} (b1);
+		\draw[branch] (b) -- node[edge_label] {No} (b2);
+		
+		\draw[branch] (a2) -- node[edge_label] {Sí} (a21);
+		\draw[branch] (a2) -- node[edge_label] {No} (a22);
+		
+		\draw[branch] (b1) -- node[edge_label] {Sí} (b11);
+		\draw[branch] (b1) -- node[edge_label] {No} (b12);
+		
+	\end{tikzpicture}
+	\caption{Ejemplo de árbol de decisión (con posicionamiento manual) para la predicción de Churn.}
+	\label{fig:decision_tree_churn_manual}
+\end{figure}
+
+Un árbol de decisión en un modelo no parampetrico, este algoritmo nos permite predecir el valor de una variable target, es utilizado tanto en tareas de clasificación y regresión, el modelo aprende ciertas reglas de decisión simples deducidas apartir de las características de los datos. Su estructura es la de un arbol jerarquico, muy parecida a la estructura de datos, consta de un nodo raíz, ramas, nodos internos y nodos hojas. Diagramas como \ref{fig:decision_tree_churn_manual} suele ser muy utiles a la hora de explicar como funciona el algoritmo, cada nivel representa una pregunta y las respuestas seran si o no, de tal forma que eventualmente una respuesta te dará una solución al problema inicial. 
+
+Por ejemplo el nodo ``¿Tiempo como cliente $> 24$ meses?'', lo podemos indentificar como nodo raíz, es el inicio de nuestro camino, por otra parte los nodos ``¿Promedio de gasto mensual $> \$50$?'' y ``¿Número de productos/servicios contratados $< 2$?'' son nodos internos, mientras que los nodos que se encuentran al mismo nivel que estos ultimos, son nodos hoja, quiere decir que es el una de las salidas de nuestro algoritmo y finalmente una rama es la ruta que se sigue desde el nodo raíz hasta cualquier otro nodo. El proceso que se lleva acabo para la construcción de un árbol de decisión, común mente se llama partición recursiva, este algoritmo es la medula espinal del modelo de arbol de decisión, además que su funcionamiento es fácil e intuitivo. La premisa es simple, los datos se parten repetidamente apoyandose de los datos de entrenamiento para tratar de conseguir las particiones más homogeneas posibles. 
+
+La homogeneidad pese a parecer un concepto trivial, se formaliza através de la coeficiente de impureza Gini y la entropía, decimos que un nodo es ``puro'', es decir con impureza cero, si todas las muestrasa que contiene pertenecen a la misma clase. Por lo tanto, el algoritmo estima cada posible partición y selecciona aquella que maximiza la reducción de entropía o la división que tenga la menor impureza de Gini ponderada en los nodos hijos, el coeficiente de Gini se define de la siguiente manera.\footnote{De hecho la definición del coeficiente de impuresa de Gini se puede extender a un problema de clasificación multiclase de la siguiente manera $G=1-\sum_{j=1}^{K}p^2_j$. }
+
+\begin{definicion}{Coeficiente de Impureza de Gini (Caso Binario)}
+	Sea p la proporción de muestras pertenecientes a una de las dos clases en un nodo. La impureza de Gini (G) para ese nodo se calcula con la siguiente fórmula:
+	
+	\[ G = 2p(1-p) \]
+	
+	Alternativamente, si $p_1$ es la proporción de la clase 1 y $p_2$ es la proporción de la clase 2 (donde $p_1 + p_2 = 1$), la fórmula general es:
+	
+	\[ G = 1 - (p_1^2 + p_2^2) \] 
+\end{definicion}
+
+
+De igual manera, otro concepto que hay que tener en cuenta es como se lleva acabo la selección de las mejores particiones posibles, si lo vemos desde cierto punto de vista podemos hablar de un algoritmo codicioso que busca en cada paso, tener la mejor elección de una partición posible, sin importar que más adelante dicha división sea inpura o poco optima, esto se refuerza con la idea de la imposibilidad de tener un árbol globalmente óptimo, es decir, con todas las subparticiones perfectamente homogenizadas, por lo cual este enfoque nos permite darle un giro de tuerca, heuristicamente hablando, al problema de la creación de un arbol de decisión lo más optimizado posible. Según \cite{EstadisticaPracticacd} podemos definir el algorimto de partición recursiva de la siguiente manera.
+
+\begin{definicion}{Algoritmo de Partición Recursiva Binaria}
+	Dado un conjunto de datos o nodo A con una variable de respuesta $Y$ y un conjunto de M variables predictoras $X_j$ con $j=1,2,\cdots,M$, el algoritmo busca de manera codiciosa la división óptima que segmenta a $A$ en dos nodos hijos, $A_izquierda$ y $A_derecha$. Tal que:
+	
+	\begin{enumerate}
+		\item Para cada variable predictora $X_j$:
+		\begin{enumerate}
+			\item[a] Para cada posible punto de corte $s_j$ de la variable $X_j$:
+			\begin{enumerate}
+				\item[i] Se genera una partición tentativa dividiendo las observaciones en $A$ en dos subconjuntos: $A_{izquierda}(j, s_j) = \{X | X_j < s_j\}$ y $A_{derecha}(j, s_j) = \{X | X_j \geq s_j\}$.
+				\item[ii] Se calcula la impureza de los nodos hijos resultantes utilizando una métrica predefinida (ej. Gini o Entropía para clasificación; SSE para regresión).
+			\end{enumerate}
+			\item[b] Se selecciona el punto de corte $s_j^*$ que produce la máxima reducción de impureza para la variable $X_j$.
+		\end{enumerate}
+		\item Se selecciona la variable $X_j^*$ y su punto de corte asociado $s_j^*$ que, entre todas las variables y sus respectivos mejores cortes, ofrezca la máxima reducción de impureza global para el nodo $A$.
+		\item El proceso se repite de forma recursiva en los nuevos nodos hijos ($A_{izquierda}$ y $A_{derecha}$) hasta que se satisface un criterio de parada.
+	\end{enumerate}
+\end{definicion}
+
+Finalmente otra idea que hay que considerar es la detención del crecimiento del árbol o el control de la complejidad de un árbol de decisión, \cite{EstadisticaPracticacd} menciona que a medida que un árbol de decisión crece, las reglas de división se vuelven más detalladas y este pasa de identificar gradualmente ``grandes'' reglas, que identifican relaciones reales y confiables en los datos, a ``pequeñas'' reglas que solamente generan ruido. Entender esto es crucial, ya que en algunos casos permitir el desarrollo desmedido de un árbol de decisión puede acarrear como consecuencia el aprender completamente el conjunto de datos de entrenamiento, lo cual nos llevaría a un problema de sobre ajuste, cosa que queremos evitar preferentemente. Pese a que existen varias formas de podar nuestros arboles de decisión, la practica suele sugerir inclinarse por métodos como la validación cruzada (que más adelante explicaremos) los cuales nos permiten jugar con distintas combinaciones de hiperparametros, en este caso, profundidad maxima de un árbol, el minimo de divisiones posibles, entre muchos otros. Para que así podamos encontrar el mejor modelo posible.
+
+% Quitar esto 
+
+Para solucionar el problema del sobreajuste, Random Forest emplea una técnica de ensamble llamada Bootstrap Aggregating, o Bagging. La idea central del Bagging es reducir la varianza de un estimador promediando las predicciones de múltiples modelos entrenados en diferentes subconjuntos de los datos. 
+
+El algoritmo de Random Forest introduce una capa adicional de aleatoriedad al proceso de Bagging, lo que resulta en una mayor diversificación de los árboles y, en general, en un mejor rendimiento.
+
+\begin{definicion}{Algoritmo Random Forest}
+	Para un conjunto de entrenamiento con N muestras y M características, se construye un bosque de B árboles de la siguiente manera:
+	
+	\begin{enumerate}
+		\item Para $b = 1, \dots, B$:
+		\begin{enumerate}
+			\item Se extrae una muestra bootstrap (una muestra aleatoria con reemplazo de tamaño $N$) del conjunto de entrenamiento.
+			\item Se construye un árbol de decisión sobre esta muestra. En cada nodo del árbol, en lugar de buscar la mejor división entre las $M$ características, se selecciona un **subconjunto aleatorio de $m < M$ características** y se busca la mejor división solo dentro de ese subconjunto.
+		\end{enumerate}
+		\item El árbol se crece hasta su máxima profundidad posible sin realizar podas.
+	\end{enumerate}
+	
+	La predicción final para una nueva observación se obtiene agregando las predicciones de los $B$ árboles, generalmente mediante una votación por mayoría para clasificación.
+\end{definicion}
+
+Esta doble aleatorización (muestreo de datos y muestreo de características) es la clave del éxito de Random Forest. Asegura que los árboles individuales no estén correlacionados entre sí. Al promediar las predicciones de un gran número de modelos descorrelacionados, el error debido a la varianza se reduce drásticamente, sin aumentar significativamente el sesgo.
+
+Una de las características más valiosas de Random Forest, especialmente para el objetivo explicativo de esta tesis, es su capacidad intrínseca para calcular la importancia de las características (feature importance). Esto se logra midiendo, para cada característica, cuánto disminuye en promedio la impureza (usando el índice de Gini) en todos los árboles del bosque cada vez que esa característica es utilizada para una división. Esto proporciona una métrica cuantitativa y robusta para clasificar qué variables son las más influyentes en la predicción del churn.
+
 \subsubsection{SVM}
+
+
 
 \section{Predicción del churn.}
 
@@ -451,7 +924,7 @@ Finalmente para poder obtener la matriz de taza de retención tenemos que llevar
 	plt.show()
 \end{lstlisting}
 
-La gráfica \ref{fig:CohortesCount} nos muestra el resultado final de las anteriores codificaciones, en los registros correspondientes a la primera columna podemos observar que la taza de retención es siempre del $100\%$ esto se debe a que son los clientes que tienen su primer actividad de compra dentro de ese cohorte, de tal forma que los registros de las columnas posteriores representan la actividad de los clientes después de su adquisición, por ejemplo, el cohorte enero de 2022 en el segundo mes\footnote{Ya que cada numero es una representación simplificada de cada cohorte, es importante tomar en cuenta que dicho numero se toma apartir del cohorte inicial, por ejemplo, para el cohorte enero de 2022 el numero 1 es igual al mismo mes, en cambio el numero 2 significa febrero de 2022, de forma similar el numero 3 es equivalente a marzo del 2022 y así sucesivamente hasta llegar al ultimo mes, por consecuencia ultimo mes solo tendrá datos hasta el indice 1, el penúltimo contiene información hasta el indice 2, etc.} (febrero de 2022) podemos observar una retención del $76\%$ de los clientes iniciales y para el ultimo indice podemos notar que se mantuvieron $64\%$ de los clientes que iniciaron en enero del 2022, esto quiere decir que en \textbf{Fecha final} se perdió el $36\%$ de los clientes ingresados en enero de 2022, esto dicho grupo de clientes tiene un comportamiento de compra habitual y guardan cierta fidelidad.
+La gráfica \ref{fig:CohortesCount} nos muestra el resultado final de las anteriores codificaciones, en los registros correspondientes a la primera columna podemos observar que la taza de retención es siempre del $100\%$ esto se debe a que son los clientes que tienen su primer actividad de compra dentro de ese cohorte, de tal forma que los registros de las columnas posteriores representan la actividad de los clientes después de su adquisición, por ejemplo, el cohorte enero de 2022 en el segundo mes\footnote{Ya que cada numero es una representación simplificada de cada cohorte, es importante tomar en cuenta que dicho numero se toma apartir del cohorte inicial, por ejemplo, para el cohorte enero de 2022 el numero 1 es igual al mismo mes, en cambio el numero 2 significa febrero de 2022, de forma similar el numero 3 es equivalente a marzo del 2022 y así sucesivamente hasta llegar al ultimo mes, por consecuencia ultimo mes solo tendrá datos hasta el indice 1, el penúltimo contiene información hasta el indice 2, etc.} (febrero de 2022) podemos observar una retención del $76\%$ de los clientes iniciales y para el ultimo indice podemos notar que se mantuvieron $64\%$ de los clientes que iniciaron en enero del 2022, esto quiere decir que en ``Fecha final'' se perdió el $36\%$ de los clientes ingresados en enero de 2022, esto dicho grupo de clientes tiene un comportamiento de compra habitual y guardan cierta fidelidad.
 
 
 Similarmente, los clientes adquiridos en agosto de 2022 tienen un comportamiento similar hasta 6 meses después de la adquisición, sin embargo es a aparir del mes 7 que este comportamiento baja al $40\%$. El general la tasa de retención de clientes adquiridos en cada cohorte es bajo , ya que para el mes más reciente de cada cohorte podemos notar una baja tasa de retención, lo cual indica que la empresa ha perdido más clientes de los que ha ganado en los últimos meses.
